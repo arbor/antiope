@@ -1,0 +1,65 @@
+version: 2.0
+jobs:
+  build:
+    working_directory: ~/build
+    docker:
+      - image: quay.io/haskell_works/stack-build-minimal:2018-01-29
+
+    steps:
+      - checkout
+
+      - run:
+          name: Find all sub-projects
+          command: find . -name "package.yaml" -o -name "*.cabal" | grep -v '.stack-work/' | sort | xargs cat > subprojects.txt
+
+      ##### Building library
+      - restore_cache:
+          keys:
+            - dot-stack-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
+            - dot-stack-{{ checksum "stack.yaml" }}-build
+            - dot-stack-{{ checksum "stack.yaml" }}-setup
+
+      - restore_cache:
+          keys:
+            - dot-stack-work-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
+            - dot-stack-work-{{ checksum "stack.yaml" }}
+
+      - run:
+          name: Stack setup
+          command: stack setup
+
+      - save_cache:
+          key: dot-stack-{{ checksum "stack.yaml" }}-setup
+          paths:
+            - ~/.stack
+
+      - run:
+          name: Building dependencies
+          command: stack build --only-dependencies
+
+      - run:
+          name: Compiling
+          command: stack build --test --no-run-tests
+
+      - save_cache:
+          key: dot-stack-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
+          paths:
+            - ~/.stack
+      - save_cache:
+          key: dot-stack-{{ checksum "stack.yaml" }}-build
+          paths:
+            - ~/.stack
+
+      - save_cache:
+          key: dot-stack-work-{{ checksum "stack.yaml" }}
+          paths: ~/build/.stack-work
+
+      - save_cache:
+          key: dot-stack-work-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
+          paths: ~/build/.stack-work
+
+
+      ##### Running tests
+      - run:
+          name: Running tests against latest on hackage
+          command: stack test

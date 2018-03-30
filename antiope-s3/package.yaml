@@ -1,0 +1,57 @@
+name:                antiope-s3
+version:             1.0.0
+github:              "arbor/antiope"
+license:             MIT
+category:            Services
+author:              Tyler Durden
+maintainer:          tyler.durden@arbor.net
+copyright:           Arbor Networks
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Data
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://github.com/arbor/antiope#readme>
+
+default-extensions:
+- BangPatterns
+- GeneralizedNewtypeDeriving
+- OverloadedStrings
+- TupleSections
+
+dependencies:
+- base >= 4.7 && < 5
+- amazonka
+- amazonka-core
+- amazonka-s3
+- bytestring
+- conduit-extra
+- exceptions
+- http-types
+- http-client
+- lens
+- mtl
+- resourcet
+- text
+- transformers
+
+library:
+  source-dirs: src
+
+tests:
+  antiope-core-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - antiope-s3

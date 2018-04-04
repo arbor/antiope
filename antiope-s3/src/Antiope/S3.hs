@@ -5,12 +5,15 @@ module Antiope.S3
 , downloadLBS'
 , putFile, putContent
 , copySingle
+, Region(..)
 , BucketName(..)
 , ObjectKey(..)
 , ETag(..)
 , s3UriString
 , MonadAWS
 , MonadResource
+, FromText(..)
+, ToText(..)
 ) where
 
 import           Control.Lens

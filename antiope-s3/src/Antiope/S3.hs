@@ -9,6 +9,8 @@ module Antiope.S3
 , ObjectKey(..)
 , ETag(..)
 , s3UriString
+, MonadAWS
+, MonadResource
 ) where
 
 import           Control.Lens

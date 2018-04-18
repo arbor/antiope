@@ -14,6 +14,7 @@ module Antiope.S3
 , MonadResource
 , FromText(..)
 , ToText(..)
+, module Network.AWS.S3
 ) where
 
 import           Control.Lens

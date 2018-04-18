@@ -9,6 +9,7 @@ module Antiope.SQS
 , drainQueue
 , ackMessage
 , ackMessages
+, module Network.AWS.SQS
 ) where
 
 import           Control.Lens          ((&), (?~), (^.))

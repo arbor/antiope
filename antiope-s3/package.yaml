@@ -4,7 +4,7 @@ github:              "arbor/antiope"
 license:             MIT
 category:            Services
 author:              Tyler Durden
-maintainer:          tyler.durden@arbor.net
+maintainer:          mayhem@arbor.net
 copyright:           Arbor Networks
 
 extra-source-files:
@@ -46,7 +46,7 @@ library:
   source-dirs: src
 
 tests:
-  antiope-core-test:
+  antiope-s3-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:

@@ -1,4 +1,4 @@
-name:                antiope-core
+name:                antiope-sqs
 version:             1.0.0
 github:              "arbor/antiope"
 license:             MIT
@@ -20,15 +20,26 @@ extra-source-files:
 # common to point users to the README.md file.
 description:         Please see the README on Github at <https://github.com/arbor/antiope#readme>
 
+default-extensions:
+- BangPatterns
+- GeneralizedNewtypeDeriving
+- OverloadedStrings
+- TupleSections
+
 dependencies:
 - base >= 4.7 && < 5
 - amazonka
 - amazonka-core
+- amazonka-sqs
 - bytestring
+- conduit-extra
+- exceptions
 - http-types
 - http-client
 - lens
+- monad-loops
 - mtl
+- resourcet
 - text
 - transformers
 
@@ -36,7 +47,7 @@ library:
   source-dirs: src
 
 tests:
-  antiope-core-test:
+  antiope-sqs-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -44,4 +55,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - antiope-core
+    - antiope-sqs

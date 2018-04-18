@@ -2,3 +2,4 @@ resolver: lts-10.8
 packages:
 - antiope-core
 - antiope-s3
+- antiope-sqs

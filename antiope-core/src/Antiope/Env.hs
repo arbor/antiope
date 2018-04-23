@@ -1,6 +1,7 @@
 module Antiope.Env
 ( mkEnv
 , AWS.Env
+, AWS.HasEnv(..)
 , AWS.LogLevel(..)
 , AWS.Region(..)
 )

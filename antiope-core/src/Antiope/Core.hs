@@ -5,6 +5,12 @@ module Antiope.Core
 , AWS.MonadAWS
 , AWS.runAWS
 , AWS.runResourceT
+, AWS.liftAWS
+, AWS.sinkMD5, AWS.sinkSHA256
+, AWS.AWS(..)
+, AWS.catching
+, AWS.Error(..)
+, AWS.ErrorCode(..), AWS.errorCode
 , AWS.Region(..)
 , AWS.LogLevel(..)
 )

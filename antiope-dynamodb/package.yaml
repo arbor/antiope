@@ -1,0 +1,59 @@
+name:                antiope-dynamodb
+version:             1.0.0
+github:              "arbor/antiope"
+license:             MIT
+category:            Services
+author:              Tyler Durden
+maintainer:          mayhem@arbor.net
+copyright:           Arbor Networks
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Data
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://github.com/arbor/antiope#readme>
+
+default-extensions:
+- BangPatterns
+- GeneralizedNewtypeDeriving
+- OverloadedStrings
+- TupleSections
+
+dependencies:
+- base >= 4.7 && < 5
+- amazonka
+- amazonka-core
+- amazonka-dynamodb
+- bytestring
+- conduit-extra
+- exceptions
+- http-types
+- http-client
+- lens
+- monad-loops
+- mtl
+- resourcet
+- text
+- transformers
+- unordered-containers
+
+library:
+  source-dirs: src
+
+tests:
+  antiope-dynamodb-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - antiope-dynamodb

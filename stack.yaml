@@ -1,5 +1,6 @@
-resolver: lts-10.8
+resolver: lts-10.10
 packages:
 - antiope-core
 - antiope-s3
 - antiope-sqs
+- antiope-dynamodb

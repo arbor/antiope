@@ -32,11 +32,13 @@ dependencies:
 - amazonka-core
 - amazonka-s3
 - bytestring
+- conduit
 - conduit-extra
 - exceptions
 - http-types
 - http-client
 - lens
+- mmorph
 - mtl
 - resourcet
 - text

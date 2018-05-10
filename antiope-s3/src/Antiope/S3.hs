@@ -3,13 +3,15 @@
 module Antiope.S3
 ( downloadLBS
 , downloadLBS'
+, s3ObjectSource
 , putFile, putContent
 , copySingle
+, toS3Uri
 , Region(..)
 , BucketName(..)
 , ObjectKey(..)
 , ETag(..)
-, s3UriString
+, S3Location(..)
 , MonadAWS
 , MonadResource
 , FromText(..)
@@ -20,20 +22,37 @@ module Antiope.S3
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Catch          (catch)
+import           Control.Monad.Morph          (hoist)
 import           Control.Monad.Trans.AWS      hiding (send)
 import           Control.Monad.Trans.Resource
+import qualified Data.ByteString              as BS
 import           Data.ByteString.Lazy         (ByteString, empty)
+import           Data.Conduit
 import           Data.Conduit.Binary          (sinkLbs)
 import           Data.Monoid                  ((<>))
-import           Data.Text                    (unpack)
+import           Data.Text                    (Text)
 import           Network.AWS                  (Error (..), MonadAWS,
                                                ServiceError (..), send)
 import           Network.AWS.Data
+import           Network.AWS.Data.Body        (_streamBody)
 import           Network.AWS.S3
 import           Network.HTTP.Types.Status    (Status (..))
 
+
 chunkSize :: ChunkSize
 chunkSize = ChunkSize (1024*1024)
+
+data S3Location = S3Location
+  { s3Bucket    :: BucketName
+  , s3ObjectKey :: ObjectKey
+  } deriving (Show, Eq)
+
+instance ToText S3Location where
+  toText loc = toS3Uri (s3Bucket loc) (s3ObjectKey loc)
+
+toS3Uri :: BucketName -> ObjectKey -> Text
+toS3Uri (BucketName b) (ObjectKey k) =
+  "s3://" <> b <> "/" <> k
 
 downloadLBS :: (MonadResource m, MonadAWS m)
             => BucketName
@@ -55,9 +74,20 @@ downloadLBS' bucketName objectKey = do
     Right bs -> return (Just bs)
     Left _   -> return Nothing
 
-s3UriString :: BucketName -> ObjectKey -> String
-s3UriString (BucketName b) (ObjectKey k) =
-  unpack $ "s3://" <> b <> "/" <> k
+downloadS3File' :: (MonadResource m, MonadAWS m)
+             => BucketName
+             -> ObjectKey
+             -> m (ResumableSource m BS.ByteString)
+downloadS3File' bkt obj = do
+  resp <- send $ getObject bkt obj
+  return $ hoist liftResourceT $ _streamBody $ resp ^. gorsBody
+
+s3ObjectSource :: (MonadResource m, MonadAWS m)
+                 => BucketName
+                 -> ObjectKey
+                 -> m (Source m BS.ByteString)
+s3ObjectSource bkt obj =
+  fst <$> (downloadS3File' bkt obj >>= unwrapResumable)
 
 -- | Puts file into a specified S3 bucket
 putFile :: MonadAWS m

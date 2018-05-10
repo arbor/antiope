@@ -14,8 +14,8 @@ module Antiope.S3
 , S3Location(..)
 , MonadAWS
 , MonadResource
-, FromText(..)
-, ToText(..)
+, FromText(..), fromText
+, ToText(..), toText
 , module Network.AWS.S3
 ) where
 

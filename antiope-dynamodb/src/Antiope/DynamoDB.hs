@@ -4,6 +4,7 @@ module Antiope.DynamoDB
 ( MonadAWS
 , FromText(..), fromText
 , ToText(..)
+, TableName(..)
 , dynamoPutItem
 , module Network.AWS.DynamoDB
 ) where

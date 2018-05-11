@@ -15,7 +15,7 @@ module Antiope.S3
 , MonadAWS
 , MonadResource
 , FromText(..), fromText
-, ToText(..), toText
+, ToText(..)
 , module Network.AWS.S3
 ) where
 

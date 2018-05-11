@@ -3,7 +3,7 @@
 module Antiope.SQS
 ( MonadAWS
 , FromText(..), fromText
-, ToText(..), toText
+, ToText(..)
 , QueueUrl(..)
 , readQueue
 , drainQueue
@@ -23,7 +23,7 @@ import           Data.Text             (Text)
 import           Network.AWS.Data.Text (FromText (..), ToText (..), fromText,
                                         toText)
 
-newtype QueueUrl = QueueUrl { unQueueUrl :: Text } deriving (Show, Eq, IsString, FromText)
+newtype QueueUrl = QueueUrl { unQueueUrl :: Text } deriving (Show, Eq, IsString, FromText, ToText)
 
 -- | Reads the specified SQS queue once returning a bath of messages
 readQueue :: (MonadAWS m) => QueueUrl -> m [Message]

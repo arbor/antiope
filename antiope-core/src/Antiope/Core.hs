@@ -4,6 +4,7 @@ module Antiope.Core
 , AWS.HasEnv(..)
 , AWS.MonadAWS
 , AWS.runAWS
+, AWS.send
 , AWS.runResourceT
 , AWS.liftAWS
 , AWS.sinkMD5, AWS.sinkSHA256

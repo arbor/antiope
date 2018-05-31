@@ -6,6 +6,7 @@ module Antiope.DynamoDB
 , ToText(..)
 , TableName(..)
 , dynamoPutItem
+, dynamoQuery
 , module Network.AWS.DynamoDB
 ) where
 
@@ -24,3 +25,5 @@ dynamoPutItem :: MonadAWS m => TableName -> HashMap Text AttributeValue -> m Put
 dynamoPutItem (TableName table) item =
   send $ putItem table & piItem .~ item
 
+dynamoQuery :: MonadAWS m => TableName -> (Query -> Query) -> m QueryResponse
+dynamoQuery (TableName table) f = send $ f $ query table

@@ -14,5 +14,8 @@ import Antiope.Athena as A
 
 env <- newEnv Discover <&> envRegion .~ Oregon
 
-runResourceT . runAWS env $ A.query "<s3 location to save the results>" "<database name>" "<query string>" "<client request token>"
+let config = resultConfiguration "<s3 location to save the results>"
+let context = queryExecutionContext & qecDatabase ?~ "<database name>"
+
+runResourceT . runAWS env $ A.query config context "<query string>" "<client request token>"
 ```

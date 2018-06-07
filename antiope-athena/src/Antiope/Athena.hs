@@ -26,15 +26,14 @@ import           Network.HTTP.Types.Status    (Status (..))
 
 
 query :: (MonadResource m, MonadAWS m)
-            => Text
-            -> Text
+            => ResultConfiguration
+            -> QueryExecutionContext
             -> Text
             -> Text
             -> m [Row]
-query location database qstring clientRequestToken = do
-  let config = resultConfiguration location
+query config context qstring clientRequestToken = do
   resp <- send $ startQueryExecution qstring config
-                    & sqeQueryExecutionContext ?~ (queryExecutionContext & qecDatabase ?~ database)
+                    & sqeQueryExecutionContext ?~ context
                     & sqeClientRequestToken ?~ clientRequestToken
   case resp ^. sqersQueryExecutionId of
     Just qeid -> go qeid

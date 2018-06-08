@@ -1,5 +1,6 @@
 module Antiope.Athena
   ( query
+  , module Network.AWS.Athena
   )where
 
 import           Control.Lens

@@ -26,6 +26,7 @@ To test, in `stack repl`:
 ```
 import Control.Lens
 import Control.Monad.Trans.Resource
+import Data.HashMap.Strict
 import Network.AWS
 import Network.AWS.Types
 import Antiope.DynamoDB as D

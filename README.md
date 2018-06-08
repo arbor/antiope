@@ -20,3 +20,20 @@ let context = queryExecutionContext & qecDatabase ?~ "<database name>"
 
 runResourceT . runAWS env $ A.query config context "<query string>" "<client request token>"
 ```
+
+## Antiope-DynamoDB
+To test, in `stack repl`:
+```
+import Control.Lens
+import Control.Monad.Trans.Resource
+import Data.HashMap.Strict
+import Network.AWS
+import Network.AWS.Types
+import Antiope.DynamoDB as D
+
+env <- newEnv Discover <&> envRegion .~ Oregon
+
+let table = TableName <table_name>
+
+runResourceT . runAWS env $ D.dynamoQuery table $ \q -> q & qKeyConditionExpression ?~ "#k = :v" & qLimit ?~ 1 & qExpressionAttributeValues .~ fromList [(":v", attributeValue & avS ?~ "<primary key value>")]   & qExpressionAttributeNames  .~ fromList [("#k", "<primary key name>")]
+```

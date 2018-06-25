@@ -12,7 +12,7 @@ module Antiope.S3
 , BucketName(..)
 , ObjectKey(..)
 , ETag(..)
-, S3Location(..)
+, S3Uri(..)
 , MonadAWS
 , MonadResource
 , FromText(..), fromText
@@ -44,25 +44,25 @@ import           Network.URI                  (URI (..), URIAuth (..), parseURI)
 chunkSize :: ChunkSize
 chunkSize = ChunkSize (1024*1024)
 
-data S3Location = S3Location
+data S3Uri = S3Uri
   { s3Bucket    :: BucketName
   , s3ObjectKey :: ObjectKey
   } deriving (Show, Eq)
 
-instance ToText S3Location where
+instance ToText S3Uri where
   toText loc = toS3Uri (s3Bucket loc) (s3ObjectKey loc)
 
 toS3Uri :: BucketName -> ObjectKey -> Text
 toS3Uri (BucketName b) (ObjectKey k) =
   "s3://" <> b <> "/" <> k
 
-fromS3Uri :: Text -> Maybe S3Location
+fromS3Uri :: Text -> Maybe S3Uri
 fromS3Uri uri = do
   puri <- parseURI (unpack uri)
   auth <- puri & uriAuthority
   let b = pack $ auth & uriRegName       -- URI lib is pretty weird
   let k = pack $ drop 1 $ puri & uriPath
-  pure $ S3Location (BucketName b) (ObjectKey k)
+  pure $ S3Uri (BucketName b) (ObjectKey k)
 
 downloadLBS :: (MonadResource m, MonadAWS m)
             => BucketName

@@ -1,5 +1,5 @@
 name:                antiope-s3
-version:             1.0.0
+version:             2.0.0
 github:              "arbor/antiope"
 license:             MIT
 category:            Services
@@ -28,9 +28,9 @@ default-extensions:
 
 dependencies:
 - base >= 4.7 && < 5
-- amazonka
-- amazonka-core
-- amazonka-s3
+- amazonka        >= 1.6
+- amazonka-core   >= 1.6
+- amazonka-s3     >= 1.6
 - bytestring
 - conduit
 - conduit-extra

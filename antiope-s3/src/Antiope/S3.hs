@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Antiope.S3
 ( downloadLBS
@@ -8,6 +9,7 @@ module Antiope.S3
 , copySingle
 , fromS3Uri
 , toS3Uri
+, lsBucketStream
 , Region(..)
 , BucketName(..)
 , ObjectKey(..)
@@ -30,6 +32,8 @@ import Control.Monad.Trans.Resource
 import Data.ByteString.Lazy         (ByteString, empty)
 import Data.Conduit
 import Data.Conduit.Binary          (sinkLbs)
+import Data.Conduit.Combinators     as CC (concatMap)
+import Data.Conduit.List            (unfoldM)
 import Data.Monoid                  ((<>))
 import Data.Text                    (Text, pack, unpack)
 import Network.AWS                  (Error (..), MonadAWS, ServiceError (..), send)
@@ -126,3 +130,28 @@ copySingle :: MonadAWS m
 copySingle sb sk tb tk =
   void . send $ copyObject tb (toText sb <> "/" <> toText sk) tk
      & coMetadataDirective ?~ MDCopy
+
+-- | Streams the entire set of results (i.e. all pages) of a ListObjectsV2
+-- request from S3.
+lsBucketStream :: MonadAWS m => ListObjectsV2 -> ConduitT i Object m ()
+lsBucketStream bar = unfoldM lsBucketPage (Just bar) .| CC.concatMap (^. lovrsContents)
+
+-- Private --
+
+-- Builds the request for the next page of a NextObjectsV2 request,
+-- based on the original request and the most recent response.
+nextPageReq :: ListObjectsV2 -> ListObjectsV2Response -> ListObjectsV2
+nextPageReq initial resp =
+  initial & lovContinuationToken .~ resp ^. lovrsNextContinuationToken
+
+-- The type signature is like this so that it can be used with `unfoldM`
+lsBucketPage :: MonadAWS m
+             => Maybe ListObjectsV2
+             -> m (Maybe (ListObjectsV2Response, Maybe ListObjectsV2))
+lsBucketPage Nothing    = pure Nothing
+lsBucketPage (Just req) = do
+  resp <- send req
+  pure . Just . (resp, ) $
+    case resp ^. lovrsIsTruncated of
+      Just True -> Just $ nextPageReq req resp
+      _         -> Nothing

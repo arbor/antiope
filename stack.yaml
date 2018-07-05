@@ -6,10 +6,13 @@ packages:
 - antiope-dynamodb
 - antiope-athena
 
-extra-deps:
-  - amazonka-1.6.0
-  - amazonka-core-1.6.0
-  - amazonka-s3-1.6.0
-  - amazonka-sqs-1.6.0
-  - amazonka-dynamodb-1.6.0
-  - amazonka-athena-1.6.0
+- location:
+    git: git@github.com:brendanhay/amazonka
+    commit: 248f7b2a7248222cc21cef6194cd1872ba99ac5d
+    subdirs:
+      - amazonka
+      - amazonka-s3
+      - amazonka-sqs
+      - amazonka-dynamodb
+      - amazonka-athena
+  extra-dep: true

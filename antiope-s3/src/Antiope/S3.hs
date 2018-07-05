@@ -4,8 +4,9 @@
 module Antiope.S3
 ( downloadLBS
 , downloadLBS'
+, downloadS3Uri
 , s3ObjectSource
-, putFile, putContent
+, putFile, putContent , putContent'
 , copySingle
 , fromS3Uri
 , toS3Uri
@@ -19,6 +20,7 @@ module Antiope.S3
 , MonadResource
 , FromText(..), fromText
 , ToText(..)
+, ToLogStr(..)
 , module Network.AWS.S3
 ) where
 
@@ -26,6 +28,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Catch          (catch)
 import Control.Monad.IO.Class       (liftIO)
+import Control.Monad.Logger         (LogStr (..), ToLogStr (..))
 import Control.Monad.Morph          (hoist)
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
@@ -35,6 +38,7 @@ import Data.Conduit.Binary          (sinkLbs)
 import Data.Conduit.Combinators     as CC (concatMap)
 import Data.Conduit.List            (unfoldM)
 import Data.Monoid                  ((<>))
+import Data.String                  (fromString)
 import Data.Text                    (Text, pack, unpack)
 import Network.AWS                  (Error (..), MonadAWS, ServiceError (..), send)
 import Network.AWS.Data
@@ -55,6 +59,9 @@ data S3Uri = S3Uri
 
 instance ToText S3Uri where
   toText loc = toS3Uri (s3Bucket loc) (s3ObjectKey loc)
+
+instance ToLogStr S3Uri where
+  toLogStr s = fromString $ unpack $ toText s
 
 toS3Uri :: BucketName -> ObjectKey -> Text
 toS3Uri (BucketName b) (ObjectKey k) =
@@ -77,9 +84,9 @@ downloadLBS bucketName objectKey = do
   (resp ^. gorsBody) `sinkBody` sinkLbs
 
 downloadLBS' :: (MonadResource m, MonadAWS m)
-            => BucketName
-            -> ObjectKey
-            -> m (Maybe ByteString)
+             => BucketName
+             -> ObjectKey
+             -> m (Maybe ByteString)
 downloadLBS' bucketName objectKey = do
   ebs <- (Right <$> downloadLBS bucketName objectKey) `catch` \(e :: Error) -> case e of
     (ServiceError (ServiceError' _ (Status 404 _) _ _ _ _)) -> return (Left empty)
@@ -88,19 +95,18 @@ downloadLBS' bucketName objectKey = do
     Right bs -> return (Just bs)
     Left _   -> return Nothing
 
-downloadS3File' :: (MonadResource m, MonadAWS m)
-             => BucketName
-             -> ObjectKey
-             -> m (ConduitT () BS.ByteString m ())
-downloadS3File' bkt obj = do
-  resp <- send $ getObject bkt obj
-  return $ transPipe liftResourceT $ _streamBody $ resp ^. gorsBody
+downloadS3Uri :: (MonadResource m, MonadAWS m)
+              => S3Uri
+              -> m (Maybe ByteString)
+downloadS3Uri (S3Uri b k) = downloadLBS' b k
 
 s3ObjectSource :: (MonadResource m, MonadAWS m)
-                 => BucketName
-                 -> ObjectKey
-                 -> m (ConduitT () BS.ByteString m ())
-s3ObjectSource bkt obj = downloadS3File' bkt obj
+               => BucketName
+               -> ObjectKey
+               -> m (ConduitT () BS.ByteString m ())
+s3ObjectSource bkt obj = do
+  resp <- send $ getObject bkt obj
+  return $ transPipe liftResourceT $ _streamBody $ resp ^. gorsBody
 
 -- | Puts file into a specified S3 bucket
 putFile :: MonadAWS m
@@ -119,6 +125,12 @@ putContent :: MonadAWS m
            -> m (Maybe ETag)
 putContent b k c =
   view porsETag <$> send (putObject b k (toBody c))
+
+putContent' :: MonadAWS m
+            => S3Uri
+            -> ByteString
+            -> m (Maybe ETag)
+putContent' (S3Uri b k) = putContent b k
 
 -- | Copies a single object within S3
 copySingle :: MonadAWS m

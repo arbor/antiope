@@ -38,6 +38,7 @@ dependencies:
 - http-types
 - http-client
 - lens
+- monad-logger
 - mmorph
 - mtl
 - network-uri

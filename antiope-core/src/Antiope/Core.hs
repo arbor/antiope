@@ -17,8 +17,11 @@ module Antiope.Core
 )
 where
 
-import           Network.AWS.Data.Text (FromText (..), Text, ToText (..),
-                                        fromText, toText)
+import Control.Monad.Trans.Class    (lift)
+import Control.Monad.Trans.Resource (ResourceT)
+import Network.AWS.Data.Text        (FromText (..), Text, ToText (..), fromText, toText)
 
-import qualified Network.AWS           as AWS
+import qualified Network.AWS as AWS
 
+instance AWS.MonadAWS m => AWS.MonadAWS (ResourceT m) where
+  liftAWS = lift . AWS.liftAWS

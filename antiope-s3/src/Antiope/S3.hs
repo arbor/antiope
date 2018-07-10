@@ -75,7 +75,7 @@ fromS3Uri uri = do
   let k = pack $ drop 1 $ puri & uriPath
   pure $ S3Uri (BucketName b) (ObjectKey k)
 
-downloadLBS :: (MonadResource m, MonadAWS m)
+downloadLBS :: MonadAWS m
             => BucketName
             -> ObjectKey
             -> m ByteString
@@ -83,7 +83,7 @@ downloadLBS bucketName objectKey = do
   resp <- send $ getObject bucketName objectKey
   (resp ^. gorsBody) `sinkBody` sinkLbs
 
-downloadLBS' :: (MonadResource m, MonadAWS m)
+downloadLBS' :: MonadAWS m
              => BucketName
              -> ObjectKey
              -> m (Maybe ByteString)
@@ -95,7 +95,7 @@ downloadLBS' bucketName objectKey = do
     Right bs -> return (Just bs)
     Left _   -> return Nothing
 
-downloadS3Uri :: (MonadResource m, MonadAWS m)
+downloadS3Uri :: MonadAWS m
               => S3Uri
               -> m (Maybe ByteString)
 downloadS3Uri (S3Uri b k) = downloadLBS' b k

@@ -29,6 +29,7 @@ dependencies:
 - http-client
 - lens
 - mtl
+- resourcet
 - text
 - transformers
 

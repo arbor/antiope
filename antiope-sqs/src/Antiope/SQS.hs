@@ -13,12 +13,11 @@ module Antiope.SQS
 , module Network.AWS.SQS
 ) where
 
-import Control.Lens         (each, (&), (.~), (?~), (^.), (^..))
-import Control.Monad        (forM_, join, void, when)
-import Control.Monad.Except (ExceptT (..), throwError)
-import Control.Monad.Loops  (unfoldWhileM)
-import Data.Maybe           (catMaybes)
-import Network.AWS          (MonadAWS, send)
+import Control.Lens        (each, (&), (.~), (?~), (^.), (^..))
+import Control.Monad       (forM_, join, void, when)
+import Control.Monad.Loops (unfoldWhileM)
+import Data.Maybe          (catMaybes)
+import Network.AWS         (MonadAWS, send)
 import Network.AWS.SQS
 
 import Data.String           (IsString)
@@ -41,17 +40,18 @@ drainQueue :: MonadAWS m => QueueUrl -> m [Message]
 drainQueue queueUrl =
   join <$> unfoldWhileM (not . null) (readQueue queueUrl)
 
-ackMessage :: MonadAWS m => QueueUrl -> Message -> ExceptT SQSError m ()
+ackMessage :: MonadAWS m => QueueUrl -> Message -> m (Either SQSError ())
 ackMessage q msg = ackMessages q [msg]
 
-ackMessages :: MonadAWS m => QueueUrl -> [Message] -> ExceptT SQSError m ()
+ackMessages :: MonadAWS m => QueueUrl -> [Message] -> m (Either SQSError ())
 ackMessages (QueueUrl queueUrl) msgs = do
   let receipts = catMaybes $ msgs ^.. each . mReceiptHandle
   -- each dmbr needs an ID. just use the list index.
   let dmbres = (\(r, i) -> deleteMessageBatchRequestEntry (pack (show i)) r) <$> zip receipts ([0..] :: [Int])
   resp <- send $ deleteMessageBatch queueUrl & dmbEntries .~ dmbres
   -- only acceptable if no errors.
-  when (resp ^. dmbrsResponseStatus == 200) $
-      case resp ^. dmbrsFailed of
-        [] -> return ()
-        _  -> throwError DeleteMessageBatchError
+  if resp ^. dmbrsResponseStatus == 200
+    then case resp ^. dmbrsFailed of
+        [] -> return $ Right ()
+        _  -> return $ Left DeleteMessageBatchError
+    else return $ Left DeleteMessageBatchError

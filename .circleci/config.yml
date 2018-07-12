@@ -1,65 +1,102 @@
+defaults: &defaults
+  working_directory: ~/build
+  docker:
+    - image: quay.io/haskell_works/stack-build-minimal:2018-01-29
+
+  steps:
+    - checkout
+
+    - run: git fetch --unshallow || true
+
+    - run:
+        name: Copying scripts
+        command: |
+          mkdir -p ~/.local/bin
+          cp ./scripts/* ~/.local/bin
+
+    - run:
+        name: Query resolver & ghc version
+        command: |
+          resolver "$(resolver $LTS)" > resolver.version
+          ghc-version $(cat resolver.version) >  ghc.version
+
+    - run:
+        name: Find all sub-projects
+        command: find . -name "package.yaml" -o -name "*.cabal" | grep -v '.stack-work/' | sort | xargs cat > subprojects.txt
+
+    ##### Building library
+    - restore_cache:
+        keys:
+          - stack--{{ checksum "ghc.version" }}--{{ .Environment.CACHE_VERSION }}--{{ checksum "resolver.version" }}--{{ checksum "subprojects.txt" }}--{{ checksum "package.yaml" }}--{{ checksum "stack.yaml" }}
+          - stack--{{ checksum "ghc.version" }}--{{ .Environment.CACHE_VERSION }}--{{ checksum "resolver.version" }}--{{ checksum "subprojects.txt" }}--{{ checksum "package.yaml" }}
+          - stack--{{ checksum "ghc.version" }}--{{ .Environment.CACHE_VERSION }}--{{ checksum "resolver.version" }}--{{ checksum "subprojects.txt" }}--
+          - stack--{{ checksum "ghc.version" }}--X
+
+    - run:
+        name: Stack setup
+        command: stack setup --resolver ${LTS}
+
+    - save_cache:
+        key:    stack--{{ checksum "ghc.version" }}--X
+        paths:  [~/.stack, ~/project/.stack-work]
+
+    - run:
+        name: Building dependencies
+        command: |
+          stack build --resolver ${LTS} --dependencies-only
+          stack build --resolver ${LTS} --dependencies-only --test --no-run-tests
+
+    - save_cache:
+        key:    stack--{{ checksum "ghc.version" }}--{{ .Environment.CACHE_VERSION }}--{{ checksum "resolver.version" }}--{{ checksum "subprojects.txt" }}--{{ checksum "package.yaml" }}
+        paths:  [~/.stack, ~/project/.stack-work]
+
+    - run: stack build --resolver ${LTS} --test --no-run-tests
+
+    - save_cache:
+        key:    stack--{{ checksum "ghc.version" }}--{{ .Environment.CACHE_VERSION }}--{{ checksum "subprojects.txt" }}--{{ checksum "resolver.version" }}--{{ checksum "package.yaml" }}--{{ checksum "stack.yaml" }}
+        paths:  [~/.stack, ~/project/.stack-work]
+
+    ##### Running tests
+    - run:
+        name: Running tests against latest on hackage
+        command: stack test --resolver ${LTS}
+
 version: 2.0
 jobs:
-  build:
-    working_directory: ~/build
-    docker:
-      - image: quay.io/haskell_works/stack-build-minimal:2018-01-29
+  lts-10:
+    environment:
+      - LTS: "lts-10"
+    <<: *defaults
 
-    steps:
-      - checkout
+  lts-11:
+    environment:
+      - LTS: "lts-11"
+    <<: *defaults
 
-      - run:
-          name: Find all sub-projects
-          command: find . -name "package.yaml" -o -name "*.cabal" | grep -v '.stack-work/' | sort | xargs cat > subprojects.txt
+  lts-12:
+    environment:
+      - LTS: "lts-12"
+    <<: *defaults
 
-      ##### Building library
-      - restore_cache:
-          keys:
-            - dot-stack-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
-            - dot-stack-{{ checksum "stack.yaml" }}-build
-            - dot-stack-{{ checksum "stack.yaml" }}-setup
+  nightly:
+    environment:
+      - LTS: "nightly"
+    <<: *defaults
 
-      - restore_cache:
-          keys:
-            - dot-stack-work-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
-            - dot-stack-work-{{ checksum "stack.yaml" }}
-
-      - run:
-          name: Stack setup
-          command: stack setup
-
-      - save_cache:
-          key: dot-stack-{{ checksum "stack.yaml" }}-setup
-          paths:
-            - ~/.stack
-
-      - run:
-          name: Building dependencies
-          command: stack build --only-dependencies
-
-      - run:
-          name: Compiling
-          command: stack build --test --no-run-tests
-
-      - save_cache:
-          key: dot-stack-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
-          paths:
-            - ~/.stack
-      - save_cache:
-          key: dot-stack-{{ checksum "stack.yaml" }}-build
-          paths:
-            - ~/.stack
-
-      - save_cache:
-          key: dot-stack-work-{{ checksum "stack.yaml" }}
-          paths: ~/build/.stack-work
-
-      - save_cache:
-          key: dot-stack-work-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
-          paths: ~/build/.stack-work
-
-
-      ##### Running tests
-      - run:
-          name: Running tests against latest on hackage
-          command: stack test
+workflows:
+  version: 2
+  multiple-ghcs:
+    jobs:
+      - lts-10
+      - lts-11
+      - lts-12
+      - nightly
+      - release:
+          requires:
+            - lts-10
+            - lts-11
+            - lts-12
+            - nightly
+          filters:
+            branches:
+              only: master

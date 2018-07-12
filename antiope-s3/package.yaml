@@ -28,9 +28,9 @@ default-extensions:
 
 dependencies:
 - base >= 4.7 && < 5
-- amazonka        >= 1.6
-- amazonka-core   >= 1.6
-- amazonka-s3     >= 1.6
+- amazonka
+- amazonka-core
+- amazonka-s3
 - bytestring
 - conduit
 - conduit-extra

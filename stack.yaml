@@ -1,18 +1,8 @@
 resolver: lts-11.15
+
 packages:
 - antiope-core
 - antiope-s3
 - antiope-sqs
 - antiope-dynamodb
 - antiope-athena
-
-- location:
-    git: git@github.com:brendanhay/amazonka
-    commit: 248f7b2a7248222cc21cef6194cd1872ba99ac5d
-    subdirs:
-      - amazonka
-      - amazonka-s3
-      - amazonka-sqs
-      - amazonka-dynamodb
-      - amazonka-athena
-  extra-dep: true

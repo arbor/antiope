@@ -28,14 +28,18 @@ default-extensions:
 
 dependencies:
 - base >= 4.7 && < 5
+- aeson
 - amazonka
 - amazonka-core
 - amazonka-sqs
+- amazonka-s3
+- antiope-s3
 - bytestring
 - conduit-extra
 - exceptions
 - http-types
 - http-client
+- lens-aeson
 - lens
 - monad-loops
 - mtl

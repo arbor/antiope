@@ -10,14 +10,19 @@ module Antiope.SQS
 , drainQueue
 , ackMessage
 , ackMessages
+, s3Location
+, s3Location'
 , module Network.AWS.SQS
 ) where
 
-import Control.Lens        (each, (&), (.~), (?~), (^.), (^..))
+import Antiope.S3          (S3Uri (..))
+import Control.Lens
 import Control.Monad       (forM_, join, void, when)
 import Control.Monad.Loops (unfoldWhileM)
+import Data.Aeson.Lens
 import Data.Maybe          (catMaybes)
 import Network.AWS         (MonadAWS, send)
+import Network.AWS.S3      hiding (s3Location)
 import Network.AWS.SQS
 
 import Data.String           (IsString)
@@ -55,3 +60,14 @@ ackMessages (QueueUrl queueUrl) msgs = do
         [] -> return $ Right ()
         _  -> return $ Left DeleteMessageBatchError
     else return $ Left DeleteMessageBatchError
+
+s3Location :: Message -> Maybe S3Uri
+s3Location msg = join $ s3Location' <$> msg ^. mBody
+
+s3Location' :: Text -> Maybe S3Uri
+s3Location' msg = do
+  let sqsJson = msg ^? key "Message" . _String
+  s3m <- sqsJson ^? _Just . key "Records" . nth 0 . key "s3"
+  b   <- s3m ^? key "bucket" . key "name" . _String
+  k   <- s3m ^? key "object" . key "key" . _String
+  pure $ S3Uri (BucketName b) (ObjectKey k)

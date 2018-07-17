@@ -15,19 +15,20 @@ module Antiope.SQS
 , module Network.AWS.SQS
 ) where
 
-import Antiope.S3          (S3Uri (..))
+import Antiope.S3            (S3Uri (..))
 import Control.Lens
-import Control.Monad       (forM_, join, void, when)
-import Control.Monad.Loops (unfoldWhileM)
+import Control.Monad         (forM_, join, void, when)
+import Control.Monad.Loops   (unfoldWhileM)
 import Data.Aeson.Lens
-import Data.Maybe          (catMaybes)
-import Network.AWS         (MonadAWS, send)
-import Network.AWS.S3      hiding (s3Location)
+import Data.Maybe            (catMaybes)
+import Data.String           (IsString)
+import Data.Text             (Text, pack, unpack)
+import Network.AWS           (MonadAWS, send)
+import Network.AWS.Data.Text (FromText (..), ToText (..), fromText, toText)
+import Network.AWS.S3        hiding (s3Location)
 import Network.AWS.SQS
 
-import Data.String           (IsString)
-import Data.Text             (Text, pack)
-import Network.AWS.Data.Text (FromText (..), ToText (..), fromText, toText)
+import qualified Network.URI as URI
 
 data SQSError = DeleteMessageBatchError
 
@@ -70,4 +71,7 @@ s3Location' msg = do
   s3m <- sqsJson ^? _Just . key "Records" . nth 0 . key "s3"
   b   <- s3m ^? key "bucket" . key "name" . _String
   k   <- s3m ^? key "object" . key "key" . _String
-  pure $ S3Uri (BucketName b) (ObjectKey k)
+  pure $ S3Uri (BucketName b) (ObjectKey $ uriDecode k)
+
+uriDecode :: Text -> Text
+uriDecode = pack . URI.unEscapeString . unpack

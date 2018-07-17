@@ -41,6 +41,7 @@ dependencies:
 - http-client
 - lens-aeson
 - lens
+- network-uri
 - monad-loops
 - mtl
 - resourcet

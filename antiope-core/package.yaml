@@ -33,6 +33,15 @@ dependencies:
 - text
 - transformers
 
+ghc-options:
+- -Wall
+- -Wcompat
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wredundant-constraints
+- -O2
+- -msse4.2
+
 library:
   source-dirs: src
 

@@ -1,4 +1,4 @@
-name:                antiope-sqs
+name:                antiope-sns
 version:             1.0.0
 github:              "arbor/antiope"
 license:             MIT
@@ -31,9 +31,7 @@ dependencies:
 - aeson
 - amazonka
 - amazonka-core
-- amazonka-sqs
-- amazonka-s3
-- antiope-s3
+- amazonka-sns
 - bytestring
 - conduit-extra
 - exceptions
@@ -61,7 +59,7 @@ library:
   source-dirs: src
 
 tests:
-  antiope-sqs-test:
+  antiope-sns-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -69,4 +67,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - antiope-sqs
+    - antiope-sns

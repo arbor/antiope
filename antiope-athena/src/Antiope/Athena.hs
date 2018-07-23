@@ -1,30 +1,16 @@
 module Antiope.Athena
   ( query
+  , queryExecutionSucceed
   , module Network.AWS.Athena
   )where
 
-import           Control.Lens
-import           Control.Monad
-import           Control.Monad.Catch          (catch)
-import           Control.Monad.Morph          (hoist)
-import           Control.Monad.Trans.AWS      hiding (await, send)
-import           Control.Monad.Trans.Resource
-import qualified Data.ByteString              as BS
-import           Data.ByteString.Lazy         (ByteString, empty)
-import           Data.Conduit                 hiding (await)
-import           Data.Conduit.Binary          (sinkLbs)
-import           Data.Monoid                  ((<>))
-import           Data.Text                    (Text)
-import           Network.AWS                  (Error (..), MonadAWS,
-                                               ServiceError (..), await, send)
-import           Network.AWS.Athena
-import           Network.AWS.Athena.Types
-import           Network.AWS.Athena.Waiters
-import           Network.AWS.Data
-import           Network.AWS.Data.Body        (_streamBody)
-import           Network.AWS.Waiter
-import           Network.HTTP.Types.Status    (Status (..))
-
+import Control.Lens
+import Control.Monad.Trans.AWS      hiding (await, send)
+import Control.Monad.Trans.Resource
+import Data.Text                    (Text)
+import Network.AWS                  (MonadAWS, await, send)
+import Network.AWS.Athena
+import Network.AWS.Waiter           hiding (accept)
 
 query :: (MonadResource m, MonadAWS m)
             => ResultConfiguration
@@ -75,4 +61,5 @@ queryExecutionSucceed qeid = do
   eq <- view gqersQueryExecution <$> send (getQueryExecution qeid)
   case view qesState =<< (view qeStatus =<< eq) of
     Just Succeeded -> return True
+    Just _         -> return False
     Nothing        -> return False

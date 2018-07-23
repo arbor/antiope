@@ -5,6 +5,7 @@ packages:
 - antiope-sqs
 - antiope-dynamodb
 - antiope-athena
+- antiope-sns
 
 - location:
     git: git@github.com:brendanhay/amazonka
@@ -15,4 +16,5 @@ packages:
       - amazonka-sqs
       - amazonka-dynamodb
       - amazonka-athena
+      - amazonka-sns
   extra-dep: true

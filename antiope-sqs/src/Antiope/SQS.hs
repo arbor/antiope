@@ -1,5 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Antiope.SQS
 ( MonadAWS
 , FromText(..), fromText
@@ -17,7 +15,7 @@ module Antiope.SQS
 
 import Antiope.S3            (S3Uri (..))
 import Control.Lens
-import Control.Monad         (forM_, join, void, when)
+import Control.Monad         (join)
 import Control.Monad.Loops   (unfoldWhileM)
 import Data.Aeson.Lens
 import Data.Maybe            (catMaybes)

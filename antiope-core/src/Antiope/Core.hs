@@ -1,6 +1,8 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Antiope.Core
 ( module Network.AWS.Data.Text
-, AWS.Env(..)
+, AWS.Env
 , AWS.HasEnv(..)
 , AWS.MonadAWS
 , AWS.runAWS
@@ -8,7 +10,7 @@ module Antiope.Core
 , AWS.runResourceT
 , AWS.liftAWS
 , AWS.sinkMD5, AWS.sinkSHA256
-, AWS.AWS(..)
+, AWS.AWS
 , AWS.catching
 , AWS.Error(..)
 , AWS.ErrorCode(..), AWS.errorCode

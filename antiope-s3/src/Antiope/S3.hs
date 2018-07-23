@@ -27,9 +27,7 @@ module Antiope.S3
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch          (catch)
-import Control.Monad.IO.Class       (liftIO)
-import Control.Monad.Logger         (LogStr (..), ToLogStr (..))
-import Control.Monad.Morph          (hoist)
+import Control.Monad.Logger         (ToLogStr (..))
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
 import Data.ByteString.Lazy         (ByteString, empty)

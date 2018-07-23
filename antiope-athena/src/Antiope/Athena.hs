@@ -10,7 +10,7 @@ import Control.Monad.Trans.Resource
 import Data.Text                    (Text)
 import Network.AWS                  (MonadAWS, await, send)
 import Network.AWS.Athena
-import Network.AWS.Waiter
+import Network.AWS.Waiter           hiding (accept)
 
 query :: (MonadResource m, MonadAWS m)
             => ResultConfiguration
@@ -27,8 +27,8 @@ query config context qstring clientRequestToken = do
     Nothing   -> return []
   where
     go qeid = do
-      accpt <- await queryExecutionFinished (getQueryExecution qeid)
-      case accpt of
+      accept <- await queryExecutionFinished (getQueryExecution qeid)
+      case accept of
         AcceptSuccess -> do
           results <- send $ getQueryResults qeid
           case view gqrrsResultSet results of

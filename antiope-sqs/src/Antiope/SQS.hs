@@ -1,5 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Antiope.SQS
 ( MonadAWS
 , FromText(..), fromText

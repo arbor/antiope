@@ -31,18 +31,9 @@ dependencies:
 - amazonka
 - amazonka-core
 - amazonka-athena
-- bytestring
-- conduit
-- conduit-extra
-- exceptions
-- http-types
-- http-client
 - lens
-- mmorph
-- mtl
 - resourcet
 - text
-- transformers
 
 ghc-options:
 - -Wall

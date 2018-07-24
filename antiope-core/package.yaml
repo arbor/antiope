@@ -25,12 +25,9 @@ dependencies:
 - amazonka
 - amazonka-core
 - bytestring
-- http-types
 - http-client
 - lens
-- mtl
 - resourcet
-- text
 - transformers
 
 ghc-options:

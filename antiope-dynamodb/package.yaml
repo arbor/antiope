@@ -31,17 +31,9 @@ dependencies:
 - amazonka
 - amazonka-core
 - amazonka-dynamodb
-- bytestring
-- conduit-extra
-- exceptions
-- http-types
-- http-client
+- generic-lens
 - lens
-- monad-loops
-- mtl
-- resourcet
 - text
-- transformers
 - unordered-containers
 
 ghc-options:

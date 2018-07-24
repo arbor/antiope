@@ -10,13 +10,12 @@ import Data.Text       (Text)
 import Network.AWS     (MonadAWS, send)
 import Network.AWS.SNS
 
-publishMsg :: MonadAWS m => Text -> Text -> m ()
+publishMsg :: MonadAWS m => Text -> Text -> m (Maybe Text)
 publishMsg topicArn message = do
-  _ <- send $ publish message & pTopicARN ?~ topicArn
-  return ()
+  resp <- send $ publish message & pTopicARN ?~ topicArn
+  return $ resp ^. prsMessageId
 
-subscribeMsg :: MonadAWS m => Text -> Text -> Text -> m ()
+subscribeMsg :: MonadAWS m => Text -> Text -> Text -> m (Maybe Text)
 subscribeMsg topicArn protocol ep = do
-  _ <- send $ subscribe topicArn protocol & subEndpoint ?~ ep
-  return ()
-
+  resp <- send $ subscribe topicArn protocol & subEndpoint ?~ ep
+  return $ resp ^. srsSubscriptionARN

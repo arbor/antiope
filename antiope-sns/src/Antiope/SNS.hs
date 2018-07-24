@@ -4,7 +4,7 @@ module Antiope.SNS
 , Protocol (..)
 , SubscriptionArn (..)
 , publishMessage
-, subscribeMessage
+, subscribeTopic
 , module Network.AWS.SNS
 ) where
 
@@ -23,8 +23,8 @@ publishMessage topicArn message = do
   resp <- send $ publish message & pTopicARN <>~ (topicArn ^. tTopicARN)
   return $ MessageId <$> resp ^. prsMessageId
 
-subscribeMessage :: MonadAWS m => Topic -> Protocol -> Endpoint -> m (Maybe SubscriptionArn)
-subscribeMessage topicArn (Protocol p) ep = case topicArn ^. tTopicARN of
+subscribeTopic :: MonadAWS m => Topic -> Protocol -> Endpoint -> m (Maybe SubscriptionArn)
+subscribeTopic topicArn (Protocol p) ep = case topicArn ^. tTopicARN of
   Just t -> do
     resp <- send $ subscribe t p & subEndpoint <>~ (ep ^. eEndpointARN)
     return $ SubscriptionArn <$> resp ^. srsSubscriptionARN

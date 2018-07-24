@@ -10,6 +10,5 @@ import Network.AWS.Data.Text (FromText (..), ToText (..))
 data SQSError = DeleteMessageBatchError
   deriving (Eq, Show, Generic)
 
-newtype QueueUrl = QueueUrl
-  { text :: Text
-  } deriving (Show, Eq, IsString, FromText, ToText, Generic)
+newtype QueueUrl = QueueUrl Text
+  deriving (Show, Eq, IsString, FromText, ToText, Generic)

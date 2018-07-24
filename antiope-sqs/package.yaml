@@ -34,19 +34,12 @@ dependencies:
 - amazonka-sqs
 - amazonka-s3
 - antiope-s3
-- bytestring
-- conduit-extra
-- exceptions
-- http-types
-- http-client
+- generic-lens
 - lens-aeson
 - lens
 - network-uri
 - monad-loops
-- mtl
-- resourcet
 - text
-- transformers
 
 ghc-options:
 - -Wall

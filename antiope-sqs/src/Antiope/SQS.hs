@@ -11,16 +11,15 @@ module Antiope.SQS
 , messageInBody
 , s3Location
 , s3Location'
-, module Network.AWS.SQS
 ) where
 
 import Antiope.S3            (S3Uri (..))
+import Antiope.SQS.Types     (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
 import Control.Lens
 import Control.Monad         (join)
 import Control.Monad.Loops   (unfoldWhileM)
 import Data.Aeson.Lens
 import Data.Maybe            (catMaybes)
-import Data.String           (IsString)
 import Data.Text             (Text, pack, unpack)
 import Network.AWS           (MonadAWS, send)
 import Network.AWS.Data.Text (FromText (..), ToText (..), fromText, toText)
@@ -28,10 +27,6 @@ import Network.AWS.S3        hiding (s3Location)
 import Network.AWS.SQS
 
 import qualified Network.URI as URI
-
-data SQSError = DeleteMessageBatchError
-
-newtype QueueUrl = QueueUrl { unQueueUrl :: Text } deriving (Show, Eq, IsString, FromText, ToText)
 
 -- | Reads the specified SQS queue once returning a bath of messages
 readQueue :: MonadAWS m => QueueUrl -> m [Message]

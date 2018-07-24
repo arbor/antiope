@@ -32,19 +32,9 @@ dependencies:
 - amazonka
 - amazonka-core
 - amazonka-sns
-- bytestring
-- conduit-extra
-- exceptions
-- http-types
-- http-client
-- lens-aeson
+- generic-lens
 - lens
-- network-uri
-- monad-loops
-- mtl
-- resourcet
 - text
-- transformers
 
 ghc-options:
 - -Wall

@@ -21,9 +21,10 @@ module Antiope.S3
 , FromText(..), fromText
 , ToText(..)
 , ToLogStr(..)
-, module Network.AWS.S3
 ) where
 
+import Antiope.S3.Internal
+import Antiope.S3.Types             (S3Uri (S3Uri))
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch          (catch)
@@ -36,7 +37,6 @@ import Data.Conduit.Binary          (sinkLbs)
 import Data.Conduit.Combinators     as CC (concatMap)
 import Data.Conduit.List            (unfoldM)
 import Data.Monoid                  ((<>))
-import Data.String                  (fromString)
 import Data.Text                    (Text, pack, unpack)
 import Network.AWS                  (Error (..), MonadAWS, ServiceError (..), send)
 import Network.AWS.Data
@@ -50,20 +50,6 @@ import qualified Data.ByteString as BS
 chunkSize :: ChunkSize
 chunkSize = ChunkSize (1024*1024)
 
-data S3Uri = S3Uri
-  { s3Bucket    :: BucketName
-  , s3ObjectKey :: ObjectKey
-  } deriving (Show, Eq)
-
-instance ToText S3Uri where
-  toText loc = toS3Uri (s3Bucket loc) (s3ObjectKey loc)
-
-instance ToLogStr S3Uri where
-  toLogStr s = fromString $ unpack $ toText s
-
-toS3Uri :: BucketName -> ObjectKey -> Text
-toS3Uri (BucketName b) (ObjectKey k) =
-  "s3://" <> b <> "/" <> k
 
 fromS3Uri :: Text -> Maybe S3Uri
 fromS3Uri uri = do

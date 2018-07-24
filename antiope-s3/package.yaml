@@ -35,16 +35,13 @@ dependencies:
 - conduit
 - conduit-extra
 - exceptions
+- generic-lens
 - http-types
-- http-client
 - lens
 - monad-logger
-- mmorph
-- mtl
 - network-uri
 - resourcet
 - text
-- transformers
 
 ghc-options:
 - -Wall

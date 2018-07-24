@@ -1,4 +1,6 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Antiope.DynamoDB
 ( MonadAWS
@@ -10,19 +12,17 @@ module Antiope.DynamoDB
 , module Network.AWS.DynamoDB
 ) where
 
-import Control.Lens          ((&), (.~))
-import Data.HashMap.Strict   (HashMap)
-import Data.String           (IsString)
-import Data.Text             (Text)
-import Network.AWS           (MonadAWS, send)
-import Network.AWS.Data.Text (FromText (..), ToText (..), fromText, toText)
+import Antiope.DynamoDB.Types    (TableName (TableName))
+import Control.Lens
+import Data.Generics.Product.Any
+import Data.HashMap.Strict       (HashMap)
+import Data.Text                 (Text)
+import Network.AWS               (MonadAWS, send)
+import Network.AWS.Data.Text     (FromText (..), ToText (..), fromText, toText)
 import Network.AWS.DynamoDB
 
-newtype TableName = TableName { unTableName :: Text } deriving (Eq, Show, IsString, ToText, FromText)
-
 dynamoPutItem :: MonadAWS m => TableName -> HashMap Text AttributeValue -> m PutItemResponse
-dynamoPutItem (TableName table) item =
-  send $ putItem table & piItem .~ item
+dynamoPutItem table item = send $ putItem (table ^. the @"text") & piItem .~ item
 
 dynamoQuery :: MonadAWS m => TableName -> (Query -> Query) -> m QueryResponse
-dynamoQuery (TableName table) f = send $ f $ query table
+dynamoQuery table f = send $ f $ query (table ^. the @"text")

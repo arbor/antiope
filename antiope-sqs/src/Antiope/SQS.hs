@@ -8,7 +8,7 @@ module Antiope.SQS
 , drainQueue
 , ackMessage
 , ackMessages
-, msgInBody
+, messageInBody
 , s3Location
 , s3Location'
 , module Network.AWS.SQS
@@ -61,15 +61,16 @@ ackMessages (QueueUrl queueUrl) msgs = do
         _  -> return $ Left DeleteMessageBatchError
     else return $ Left DeleteMessageBatchError
 
-msgInBody :: Text -> Maybe Text
-msgInBody msg = msg ^? key "Message" . _String
+-- Extract the "Message" content in the body if have
+messageInBody :: Text -> Maybe Text
+messageInBody body = body ^? key "Message" . _String
 
 s3Location :: Message -> Maybe S3Uri
 s3Location msg = join $ s3Location' <$> msg ^. mBody
 
 s3Location' :: Text -> Maybe S3Uri
 s3Location' msg = do
-  s3m <- msgInBody msg ^? _Just . key "Records" . nth 0 . key "s3"
+  s3m <- messageInBody msg ^? _Just . key "Records" . nth 0 . key "s3"
   b   <- s3m ^? key "bucket" . key "name" . _String
   k   <- s3m ^? key "object" . key "key" . _String
   pure $ S3Uri (BucketName b) (ObjectKey $ uriDecode k)

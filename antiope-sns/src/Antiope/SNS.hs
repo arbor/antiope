@@ -1,22 +1,16 @@
 module Antiope.SNS
 ( MonadAWS
-, MessageId (..)
-, Protocol (..)
-, SubscriptionArn (..)
 , publishMessage
 , subscribeTopic
+, module Antiope.SNS.Types
 , module Network.AWS.SNS
 ) where
 
+import Antiope.SNS.Types
 import Control.Lens
-import Data.Text             (Text)
-import Network.AWS           (MonadAWS, send)
-import Network.AWS.Data.Text (FromText (..), ToText (..))
+import Data.Text         (Text)
+import Network.AWS       (MonadAWS, send)
 import Network.AWS.SNS
-
-newtype MessageId = MessageId Text deriving (Show, Eq, Ord, ToText, FromText)
-newtype Protocol = Protocol Text deriving (Show, Eq, Ord, ToText, FromText)
-newtype SubscriptionArn = SubscriptionArn Text deriving (Show, Eq, Ord, ToText, FromText)
 
 publishMessage :: MonadAWS m => Topic -> Text -> m (Maybe MessageId)
 publishMessage topicArn message = do

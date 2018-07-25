@@ -1,10 +1,8 @@
 module Antiope.SNS
 ( MonadAWS
-, MessageId (..)
-, Protocol (..)
-, SubscriptionArn (..)
 , publishMessage
 , subscribeTopic
+, module Antiope.SNS.Types
 , module Network.AWS.SNS
 ) where
 

@@ -1,22 +1,21 @@
 module Antiope.Env
-( mkEnv
-, AWS.Env
-, AWS.HasEnv(..)
-, AWS.LogLevel(..)
-, AWS.Region(..)
-)
-where
+  ( mkEnv
+  , AWS.Env
+  , AWS.HasEnv(..)
+  , AWS.LogLevel(..)
+  , AWS.Region(..)
+  ) where
 
-import           Control.Lens
-import           Control.Monad.Trans.AWS       hiding (LogLevel)
+import Control.Lens
+import Control.Monad.Trans.AWS hiding (LogLevel)
+import Data.ByteString.Builder
+import Network.HTTP.Client     (HttpException (..), HttpExceptionContent (..))
+
 import qualified Data.ByteString               as BS
-import           Data.ByteString.Builder
 import qualified Data.ByteString.Char8         as C8
 import qualified Data.ByteString.Lazy          as L
 import qualified Data.ByteString.Lazy.Internal as LBS
-
-import qualified Network.AWS         as AWS
-import           Network.HTTP.Client (HttpException (..), HttpExceptionContent (..))
+import qualified Network.AWS                   as AWS
 
 mkEnv :: Region -> (AWS.LogLevel -> LBS.ByteString -> IO ()) -> IO AWS.Env
 mkEnv region lg = do

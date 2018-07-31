@@ -16,7 +16,6 @@ module Antiope.S3
 , ObjectKey(..)
 , ETag(..)
 , S3Uri(..)
-, MonadAWS
 , MonadResource
 , FromText(..), fromText
 , ToText(..)
@@ -27,7 +26,7 @@ import Antiope.S3.Internal
 import Antiope.S3.Types             (S3Uri (S3Uri))
 import Control.Lens
 import Control.Monad
-import Control.Monad.Catch          (catch)
+import Control.Monad.Catch          (MonadCatch, catch)
 import Control.Monad.Logger         (ToLogStr (..))
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
@@ -38,7 +37,7 @@ import Data.Conduit.Combinators     as CC (concatMap)
 import Data.Conduit.List            (unfoldM)
 import Data.Monoid                  ((<>))
 import Data.Text                    (Text, pack, unpack)
-import Network.AWS                  (Error (..), MonadAWS, ServiceError (..), send)
+import Network.AWS                  (Error (..), ServiceError (..))
 import Network.AWS.Data
 import Network.AWS.Data.Body        (_streamBody)
 import Network.AWS.S3
@@ -46,10 +45,10 @@ import Network.HTTP.Types.Status    (Status (..))
 import Network.URI                  (URI (..), URIAuth (..), parseURI)
 
 import qualified Data.ByteString as BS
+import qualified Network.AWS     as AWS
 
 chunkSize :: ChunkSize
-chunkSize = ChunkSize (1024*1024)
-
+chunkSize = ChunkSize (1024 * 1024)
 
 fromS3Uri :: Text -> Maybe S3Uri
 fromS3Uri uri = do
@@ -59,78 +58,81 @@ fromS3Uri uri = do
   let k = pack $ drop 1 $ puri & uriPath
   pure $ S3Uri (BucketName b) (ObjectKey k)
 
-downloadLBS :: MonadAWS m
-            => BucketName
-            -> ObjectKey
-            -> m ByteString
-downloadLBS bucketName objectKey = do
-  resp <- send $ getObject bucketName objectKey
+downloadLBS :: (MonadResource m, HasEnv e)
+  => e
+  -> BucketName
+  -> ObjectKey
+  -> m ByteString
+downloadLBS e bucketName objectKey = AWS.runAWS e $ do
+  resp <- AWS.send $ getObject bucketName objectKey
   (resp ^. gorsBody) `sinkBody` sinkLbs
 
-downloadLBS' :: MonadAWS m
-             => BucketName
-             -> ObjectKey
-             -> m (Maybe ByteString)
-downloadLBS' bucketName objectKey = do
-  ebs <- (Right <$> downloadLBS bucketName objectKey) `catch` \(e :: Error) -> case e of
+downloadLBS' :: (MonadResource m, MonadCatch m, HasEnv e)
+  => e
+  -> BucketName
+  -> ObjectKey
+  -> m (Maybe ByteString)
+downloadLBS' e bucketName objectKey = do
+  ebs <- (Right <$> downloadLBS e bucketName objectKey) `catch` \(err :: Error) -> case err of
     (ServiceError (ServiceError' _ (Status 404 _) _ _ _ _)) -> return (Left empty)
-    _                                                       -> throwM e
+    _                                                       -> throwM err
   case ebs of
     Right bs -> return (Just bs)
     Left _   -> return Nothing
 
-downloadS3Uri :: MonadAWS m
-              => S3Uri
-              -> m (Maybe ByteString)
-downloadS3Uri (S3Uri b k) = downloadLBS' b k
+downloadS3Uri :: (MonadResource m, MonadCatch m, HasEnv e)
+  => e
+  -> S3Uri
+  -> m (Maybe ByteString)
+downloadS3Uri e (S3Uri b k) = downloadLBS' e b k
 
-s3ObjectSource :: (MonadResource m, MonadAWS m)
-               => BucketName
-               -> ObjectKey
-               -> m (ConduitT () BS.ByteString m ())
-s3ObjectSource bkt obj = do
-  resp <- send $ getObject bkt obj
+s3ObjectSource :: (MonadResource m, HasEnv e)
+  => e
+  -> BucketName
+  -> ObjectKey
+  -> m (ConduitT () BS.ByteString m ())
+s3ObjectSource e bkt obj = do
+  resp <- AWS.runAWS e $ AWS.send $ getObject bkt obj
   return $ transPipe liftResourceT $ _streamBody $ resp ^. gorsBody
 
 -- | Puts file into a specified S3 bucket
-putFile :: MonadAWS m
-        => BucketName       -- ^ Target bucket
-        -> ObjectKey        -- ^ File name on S3
-        -> FilePath         -- ^ Source file path
-        -> m (Maybe ETag)   -- ^ Etag when the operation is successful
-putFile b k f = do
+putFile :: (HasEnv e, MonadUnliftIO m)
+  => e
+  -> BucketName       -- ^ Target bucket
+  -> ObjectKey        -- ^ File name on S3
+  -> FilePath         -- ^ Source file path
+  -> m (Maybe ETag)   -- ^ Etag when the operation is successful
+putFile e b k f = AWS.runResourceT . AWS.runAWS e $ do
     req <- chunkedFile chunkSize f
-    view porsETag <$> send (putObject b k req)
+    view porsETag <$> AWS.send (putObject b k req)
 
-putContent :: MonadAWS m
-           => BucketName
-           -> ObjectKey
-           -> ByteString
-           -> m (Maybe ETag)
-putContent b k c =
-  view porsETag <$> send (putObject b k (toBody c))
+putContent :: (MonadUnliftIO m, HasEnv e)
+  => e
+  -> BucketName
+  -> ObjectKey
+  -> ByteString
+  -> m (Maybe ETag)
+putContent e b k c = AWS.runResourceT . AWS.runAWS e $
+  view porsETag <$> AWS.send (putObject b k (toBody c))
 
-putContent' :: MonadAWS m
-            => S3Uri
-            -> ByteString
-            -> m (Maybe ETag)
-putContent' (S3Uri b k) = putContent b k
+putContent' :: (MonadUnliftIO m, HasEnv e)
+  => e
+  -> S3Uri
+  -> ByteString
+  -> m (Maybe ETag)
+putContent' e (S3Uri b k) = putContent e b k
 
 -- | Copies a single object within S3
-copySingle :: MonadAWS m
-           => BucketName          -- ^ Source bucket name
-           -> ObjectKey           -- ^ Source key
-           -> BucketName          -- ^ Target bucket name
-           -> ObjectKey           -- ^ Target key
-           -> m ()
-copySingle sb sk tb tk =
-  void . send $ copyObject tb (toText sb <> "/" <> toText sk) tk
+copySingle :: (MonadUnliftIO m, HasEnv e)
+  => e
+  -> BucketName          -- ^ Source bucket name
+  -> ObjectKey           -- ^ Source key
+  -> BucketName          -- ^ Target bucket name
+  -> ObjectKey           -- ^ Target key
+  -> m ()
+copySingle e sb sk tb tk = AWS.runResourceT . AWS.runAWS e $
+  void . AWS.send $ copyObject tb (toText sb <> "/" <> toText sk) tk
      & coMetadataDirective ?~ MDCopy
-
--- | Streams the entire set of results (i.e. all pages) of a ListObjectsV2
--- request from S3.
-lsBucketStream :: MonadAWS m => ListObjectsV2 -> ConduitT i Object m ()
-lsBucketStream bar = unfoldM lsBucketPage (Just bar) .| CC.concatMap (^. lovrsContents)
 
 -- Private --
 
@@ -141,13 +143,23 @@ nextPageReq initial resp =
   initial & lovContinuationToken .~ resp ^. lovrsNextContinuationToken
 
 -- The type signature is like this so that it can be used with `unfoldM`
-lsBucketPage :: MonadAWS m
-             => Maybe ListObjectsV2
-             -> m (Maybe (ListObjectsV2Response, Maybe ListObjectsV2))
-lsBucketPage Nothing    = pure Nothing
-lsBucketPage (Just req) = do
-  resp <- send req
+lsBucketPage :: (MonadUnliftIO m, HasEnv e)
+  => e
+  -> Maybe ListObjectsV2
+  -> m (Maybe (ListObjectsV2Response, Maybe ListObjectsV2))
+lsBucketPage _ Nothing    = pure Nothing
+lsBucketPage e (Just req) = AWS.runResourceT . AWS.runAWS e $ do
+  resp <- AWS.send req
   pure . Just . (resp, ) $
     case resp ^. lovrsIsTruncated of
       Just True -> Just $ nextPageReq req resp
       _         -> Nothing
+
+-- | Streams the entire set of results (i.e. all pages) of a ListObjectsV2
+-- request from S3.
+-- lsBucketStream :: MonadAWS m => ListObjectsV2 -> ConduitT i Object m ()
+lsBucketStream :: (HasEnv e, MonadUnliftIO m)
+  => e
+  -> ListObjectsV2
+  -> ConduitM a Object m ()
+lsBucketStream e bar = unfoldM (lsBucketPage e) (Just bar) .| CC.concatMap (^. lovrsContents)

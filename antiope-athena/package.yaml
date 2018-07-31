@@ -3,7 +3,7 @@ version:             1.0.0
 github:              "arbor/antiope"
 license:             MIT
 category:            Services
-author:              Tyler Durden
+author:              Arbor Networks
 maintainer:          mayhem@arbor.net
 copyright:           Arbor Networks
 
@@ -34,6 +34,7 @@ dependencies:
 - lens
 - resourcet
 - text
+- unliftio-core
 
 ghc-options:
 - -Wall

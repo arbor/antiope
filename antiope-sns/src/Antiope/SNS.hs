@@ -1,25 +1,36 @@
 module Antiope.SNS
-( MonadAWS
-, publishMessage
-, subscribeTopic
-, module Antiope.SNS.Types
-, module Network.AWS.SNS
-) where
+  ( publishMessage
+  , subscribeTopic
+  , module Antiope.SNS.Types
+  , module Network.AWS.SNS
+  ) where
 
 import Antiope.SNS.Types
 import Control.Lens
-import Data.Text         (Text)
-import Network.AWS       (MonadAWS, send)
+import Control.Monad.IO.Unlift (MonadUnliftIO)
+import Data.Text               (Text)
+import Network.AWS             (HasEnv)
 import Network.AWS.SNS
 
-publishMessage :: MonadAWS m => Topic -> Text -> m (Maybe MessageId)
-publishMessage topicArn message = do
-  resp <- send $ publish message & pTopicARN <>~ (topicArn ^. tTopicARN)
+import qualified Network.AWS as AWS
+
+publishMessage :: (MonadUnliftIO m, HasEnv e)
+  => e
+  -> Topic
+  -> Text
+  -> m (Maybe MessageId)
+publishMessage e topicArn message = do
+  resp <- AWS.runResourceT $ AWS.runAWS e $ AWS.send $ publish message & pTopicARN <>~ (topicArn ^. tTopicARN)
   return $ MessageId <$> resp ^. prsMessageId
 
-subscribeTopic :: MonadAWS m => Topic -> Protocol -> Endpoint -> m (Maybe SubscriptionArn)
-subscribeTopic topicArn (Protocol p) ep = case topicArn ^. tTopicARN of
+subscribeTopic :: (MonadUnliftIO m, HasEnv e)
+  => e
+  -> Topic
+  -> Protocol
+  -> Endpoint
+  -> m (Maybe SubscriptionArn)
+subscribeTopic e topicArn (Protocol p) ep = case topicArn ^. tTopicARN of
   Just t -> do
-    resp <- send $ subscribe t p & subEndpoint <>~ (ep ^. eEndpointARN)
+    resp <- AWS.runResourceT $ AWS.runAWS e $ AWS.send $ subscribe t p & subEndpoint <>~ (ep ^. eEndpointARN)
     return $ SubscriptionArn <$> resp ^. srsSubscriptionARN
   Nothing -> return Nothing

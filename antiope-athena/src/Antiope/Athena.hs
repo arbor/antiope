@@ -5,22 +5,20 @@ module Antiope.Athena
   ) where
 
 import Control.Lens
-import Control.Monad.IO.Unlift (MonadUnliftIO)
-import Data.Text               (Text)
-import Network.AWS             (HasEnv, Rs)
+import Data.Text          (Text)
+import Network.AWS        (MonadAWS, Rs)
 import Network.AWS.Athena
-import Network.AWS.Waiter      hiding (accept)
+import Network.AWS.Waiter hiding (accept)
 
 import qualified Network.AWS as AWS
 
-query :: (HasEnv e, MonadUnliftIO m)
-  => e
-  -> ResultConfiguration
+query :: MonadAWS m
+  => ResultConfiguration
   -> QueryExecutionContext
   -> Text
   -> Text
   -> m [Row]
-query e config context qstring clientRequestToken = AWS.runResourceT $ AWS.runAWS e $ do
+query config context qstring clientRequestToken = do
   resp <- AWS.send $ startQueryExecution qstring config
     & sqeQueryExecutionContext  ?~ context
     & sqeClientRequestToken     ?~ clientRequestToken
@@ -54,11 +52,10 @@ queryExecutionFinished = Wait
     where status :: Fold (Rs GetQueryExecution) QueryExecutionState
           status = gqersQueryExecution . _Just . qeStatus . _Just . qesState . _Just
 
-queryExecutionSucceed :: (MonadUnliftIO m, HasEnv e)
-  => e
-  -> Text
+queryExecutionSucceed :: MonadAWS m
+  => Text
   -> m Bool
-queryExecutionSucceed e qeid = AWS.runResourceT $ AWS.runAWS e $ do
+queryExecutionSucceed qeid = do
   eq <- view gqersQueryExecution <$> AWS.send (getQueryExecution qeid)
   case view qesState =<< (view qeStatus =<< eq) of
     Just Succeeded -> return True

@@ -1,8 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Antiope.DynamoDB
-( MonadAWS
-, FromText(..), fromText
+( FromText(..), fromText
 , ToText(..)
 , TableName(..)
 , dynamoPutItem
@@ -10,16 +9,28 @@ module Antiope.DynamoDB
 , module Network.AWS.DynamoDB
 ) where
 
-import Antiope.DynamoDB.Types (TableName (TableName))
+import Antiope.DynamoDB.Types  (TableName (TableName))
 import Control.Lens
-import Data.HashMap.Strict    (HashMap)
-import Data.Text              (Text)
-import Network.AWS            (MonadAWS, send)
-import Network.AWS.Data.Text  (FromText (..), ToText (..), fromText, toText)
+import Control.Monad.IO.Unlift (MonadUnliftIO)
+import Data.HashMap.Strict     (HashMap)
+import Data.Text               (Text)
+import Network.AWS             (HasEnv)
+import Network.AWS.Data.Text   (FromText (..), ToText (..), fromText, toText)
 import Network.AWS.DynamoDB
 
-dynamoPutItem :: MonadAWS m => TableName -> HashMap Text AttributeValue -> m PutItemResponse
-dynamoPutItem table item = send $ putItem (table & toText) & piItem .~ item
+import qualified Network.AWS as AWS
 
-dynamoQuery :: MonadAWS m => TableName -> (Query -> Query) -> m QueryResponse
-dynamoQuery table f = send $ f $ query (table & toText)
+dynamoPutItem :: (MonadUnliftIO m, HasEnv e)
+  => e
+  -> TableName
+  -> HashMap Text AttributeValue
+  -> m PutItemResponse
+dynamoPutItem e table item = AWS.runResourceT $ AWS.runAWS e $ AWS.send $ putItem (table & toText) & piItem .~ item
+
+dynamoQuery :: (MonadUnliftIO m, HasEnv e)
+  => e
+  -> TableName
+  -> (Query
+  -> Query)
+  -> m QueryResponse
+dynamoQuery e table f = AWS.runResourceT $ AWS.runAWS e $ AWS.send $ f $ query (table & toText)

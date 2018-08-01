@@ -1,6 +1,5 @@
 module Antiope.SQS
-( MonadAWS
-, FromText(..), fromText
+( FromText(..), fromText
 , ToText(..)
 , QueueUrl(..)
 , SQSError(..)
@@ -13,42 +12,57 @@ module Antiope.SQS
 , s3Location'
 ) where
 
-import Antiope.S3            (S3Uri (..))
-import Antiope.SQS.Types     (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
+import Antiope.S3              (S3Uri (..))
+import Antiope.SQS.Types       (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
 import Control.Lens
-import Control.Monad         (join)
-import Control.Monad.Loops   (unfoldWhileM)
+import Control.Monad           (join)
+import Control.Monad.IO.Unlift (MonadUnliftIO)
+import Control.Monad.Loops     (unfoldWhileM)
 import Data.Aeson.Lens
-import Data.Maybe            (catMaybes)
-import Data.Text             (Text, pack, unpack)
-import Network.AWS           (MonadAWS, send)
-import Network.AWS.Data.Text (FromText (..), ToText (..), fromText, toText)
-import Network.AWS.S3        hiding (s3Location)
+import Data.Maybe              (catMaybes)
+import Data.Text               (Text, pack, unpack)
+import Network.AWS             (HasEnv)
+import Network.AWS.Data.Text   (FromText (..), ToText (..), fromText, toText)
+import Network.AWS.S3          hiding (s3Location)
 import Network.AWS.SQS
 
+import qualified Network.AWS as AWS
 import qualified Network.URI as URI
 
 -- | Reads the specified SQS queue once returning a bath of messages
-readQueue :: MonadAWS m => QueueUrl -> m [Message]
-readQueue (QueueUrl queueUrl) = do
+readQueue :: (HasEnv e, MonadUnliftIO m)
+  => e
+  -> QueueUrl
+  -> m [Message]
+readQueue e (QueueUrl queueUrl) = AWS.runResourceT . AWS.runAWS e $ do
   -- max wait time allowed by aws is 20sec, max number messages to recieve is 10
-  resp <- send $ receiveMessage queueUrl & rmWaitTimeSeconds ?~ 10 & rmMaxNumberOfMessages ?~ 10
+  resp <- AWS.send $ receiveMessage queueUrl & rmWaitTimeSeconds ?~ 10 & rmMaxNumberOfMessages ?~ 10
   return $ resp ^. rmrsMessages
 
 -- | Reads the specified SQS queue until it is empty and returns a list of messages
-drainQueue :: MonadAWS m => QueueUrl -> m [Message]
-drainQueue queueUrl =
-  join <$> unfoldWhileM (not . null) (readQueue queueUrl)
+drainQueue :: (HasEnv e, MonadUnliftIO m)
+  => e
+  -> QueueUrl
+  -> m [Message]
+drainQueue e queueUrl = join <$> unfoldWhileM (not . null) (readQueue e queueUrl)
 
-ackMessage :: MonadAWS m => QueueUrl -> Message -> m (Either SQSError ())
-ackMessage q msg = ackMessages q [msg]
+ackMessage :: (HasEnv e, MonadUnliftIO m)
+  => e
+  -> QueueUrl
+  -> Message
+  -> m (Either SQSError ())
+ackMessage e q msg = ackMessages e q [msg]
 
-ackMessages :: MonadAWS m => QueueUrl -> [Message] -> m (Either SQSError ())
-ackMessages (QueueUrl queueUrl) msgs = do
+ackMessages :: (HasEnv e, MonadUnliftIO m)
+  => e
+  -> QueueUrl
+  -> [Message]
+  -> m (Either SQSError ())
+ackMessages e (QueueUrl queueUrl) msgs = AWS.runResourceT . AWS.runAWS e $ do
   let receipts = catMaybes $ msgs ^.. each . mReceiptHandle
   -- each dmbr needs an ID. just use the list index.
   let dmbres = (\(r, i) -> deleteMessageBatchRequestEntry (pack (show i)) r) <$> zip receipts ([0..] :: [Int])
-  resp <- send $ deleteMessageBatch queueUrl & dmbEntries .~ dmbres
+  resp <- AWS.send $ deleteMessageBatch queueUrl & dmbEntries .~ dmbres
   -- only acceptable if no errors.
   if resp ^. dmbrsResponseStatus == 200
     then case resp ^. dmbrsFailed of

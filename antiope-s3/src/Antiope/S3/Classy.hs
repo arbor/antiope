@@ -11,15 +11,10 @@ module Antiope.S3.Classy
 , fromS3Uri
 , toS3Uri
 , lsBucketStream
-, Region(..)
 , BucketName(..)
 , ObjectKey(..)
 , ETag(..)
 , S3Uri(..)
-, MonadResource
-, FromText(..), fromText
-, ToText(..)
-, ToLogStr(..)
 ) where
 
 import Antiope.S3.Internal
@@ -27,7 +22,6 @@ import Antiope.S3.Types             (S3Uri (S3Uri))
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch          (catch)
-import Control.Monad.Logger         (ToLogStr (..))
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
 import Data.ByteString.Lazy         (ByteString, empty)

@@ -28,6 +28,7 @@ dependencies:
 - generic-lens
 - http-client
 - lens
+- monad-logger
 - mtl
 - resourcet
 - transformers

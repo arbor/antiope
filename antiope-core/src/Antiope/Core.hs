@@ -11,6 +11,9 @@ module Antiope.Core
   ( module Network.AWS.Data.Text
   , AWS.Env
   , AWS.HasEnv(..)
+  , Region(..)
+  , MonadResource
+  , ToLogStr(..)
   , AWS.runAWS
   , AWS.send
   , AWS.runResourceT
@@ -31,6 +34,7 @@ module Antiope.Core
   ) where
 
 import Control.Lens                 (view)
+import Control.Monad.Logger         (ToLogStr (..))
 import Control.Monad.Reader         (MonadReader)
 import Control.Monad.Trans.AWS
 import Control.Monad.Trans.Class    (lift)

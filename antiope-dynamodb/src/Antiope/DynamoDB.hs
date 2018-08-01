@@ -1,21 +1,19 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Antiope.DynamoDB
-( FromText(..), fromText
-, ToText(..)
-, TableName(..)
+( TableName(..)
 , dynamoPutItem
 , dynamoQuery
 , module Network.AWS.DynamoDB
 ) where
 
+import Antiope.Core            (ToText (..))
 import Antiope.DynamoDB.Types  (TableName (TableName))
 import Control.Lens
 import Control.Monad.IO.Unlift (MonadUnliftIO)
 import Data.HashMap.Strict     (HashMap)
 import Data.Text               (Text)
 import Network.AWS             (HasEnv)
-import Network.AWS.Data.Text   (FromText (..), ToText (..), fromText, toText)
 import Network.AWS.DynamoDB
 
 import qualified Network.AWS as AWS

@@ -10,6 +10,7 @@
 module Antiope.Core
   ( module Network.AWS.Data.Text
   , AWS.AWS
+  , AWS.MonadAWS
   , AWS.Env
   , AWS.Error(..)
   , AWS.ErrorCode(..), AWS.errorCode

@@ -1,6 +1,9 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Antiope.SQS.Types where
+module Antiope.SQS.Types
+  ( QueueUrl(..)
+  , SQSError(..)
+  ) where
 
 import Data.String           (IsString)
 import Data.Text             (Text)

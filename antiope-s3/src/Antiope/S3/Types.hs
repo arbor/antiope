@@ -2,7 +2,12 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Antiope.S3.Types where
+module Antiope.S3.Types
+  ( X.BucketName(..)
+  , X.ObjectKey(..)
+  , X.ETag(..)
+  , S3Uri(..)
+  ) where
 
 import Antiope.S3.Internal
 import Control.Lens
@@ -13,7 +18,8 @@ import GHC.Generics
 import Network.AWS.Data
 import Network.AWS.S3            (BucketName (..), ObjectKey (..))
 
-import qualified Data.Text as T
+import qualified Data.Text            as T
+import qualified Network.AWS.S3.Types as X
 
 data S3Uri = S3Uri
   { bucket    :: BucketName

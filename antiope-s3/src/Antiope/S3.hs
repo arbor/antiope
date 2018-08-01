@@ -11,6 +11,7 @@ module Antiope.S3
 , fromS3Uri
 , toS3Uri
 , lsBucketStream
+, Region(..)
 , BucketName(..)
 , ObjectKey(..)
 , ETag(..)

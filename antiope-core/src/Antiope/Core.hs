@@ -9,22 +9,21 @@
 
 module Antiope.Core
   ( module Network.AWS.Data.Text
-  , AWS.Env
-  , AWS.HasEnv(..)
-  , Region(..)
-  , MonadResource
-  , ToLogStr(..)
-  , AWS.runAWS
-  , AWS.send
-  , AWS.runResourceT
-  , AWS.liftAWS
-  , AWS.sinkMD5, AWS.sinkSHA256
   , AWS.AWS
-  , AWS.catching
+  , AWS.Env
   , AWS.Error(..)
   , AWS.ErrorCode(..), AWS.errorCode
-  , AWS.Region(..)
+  , AWS.HasEnv(..)
   , AWS.LogLevel(..)
+  , AWS.Region(..)
+  , AWS.catching
+  , AWS.liftAWS
+  , AWS.runAWS
+  , AWS.runResourceT
+  , AWS.send
+  , AWS.sinkMD5, AWS.sinkSHA256
+  , MonadResource
+  , ToLogStr(..)
   , runAws
   , runAwsThe
   , runAwsTyped

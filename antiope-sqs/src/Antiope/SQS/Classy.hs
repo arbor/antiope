@@ -1,28 +1,25 @@
 module Antiope.SQS.Classy
-( FromText(..), fromText
-, ToText(..)
-, QueueUrl(..)
+( QueueUrl(..)
 , SQSError(..)
 , readQueue
 , drainQueue
 , ackMessage
 , ackMessages
 , messageInBody
-, s3Location
-, s3Location'
+, messageToS3Uri
+, messageToS3Uri'
 ) where
 
-import Antiope.S3            (S3Uri (..))
-import Antiope.SQS.Types     (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
+import Antiope.S3          (S3Uri (..))
+import Antiope.SQS.Types   (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
 import Control.Lens
-import Control.Monad         (join)
-import Control.Monad.Loops   (unfoldWhileM)
+import Control.Monad       (join)
+import Control.Monad.Loops (unfoldWhileM)
 import Data.Aeson.Lens
-import Data.Maybe            (catMaybes)
-import Data.Text             (Text, pack, unpack)
-import Network.AWS           (MonadAWS)
-import Network.AWS.Data.Text (FromText (..), ToText (..), fromText, toText)
-import Network.AWS.S3        hiding (s3Location)
+import Data.Maybe          (catMaybes)
+import Data.Text           (Text, pack, unpack)
+import Network.AWS         (MonadAWS)
+import Network.AWS.S3      (BucketName (BucketName), ObjectKey (ObjectKey))
 import Network.AWS.SQS
 
 import qualified Network.AWS as AWS
@@ -69,11 +66,11 @@ ackMessages (QueueUrl queueUrl) msgs = do
 messageInBody :: Text -> Maybe Text
 messageInBody body = body ^? key "Message" . _String
 
-s3Location :: Message -> Maybe S3Uri
-s3Location msg = join $ s3Location' <$> msg ^. mBody
+messageToS3Uri :: Message -> Maybe S3Uri
+messageToS3Uri msg = join $ messageToS3Uri' <$> msg ^. mBody
 
-s3Location' :: Text -> Maybe S3Uri
-s3Location' msg = do
+messageToS3Uri' :: Text -> Maybe S3Uri
+messageToS3Uri' msg = do
   s3m <- messageInBody msg ^? _Just . key "Records" . nth 0 . key "s3"
   b   <- s3m ^? key "bucket" . key "name" . _String
   k   <- s3m ^? key "object" . key "key" . _String

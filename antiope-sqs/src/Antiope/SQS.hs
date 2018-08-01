@@ -1,7 +1,5 @@
 module Antiope.SQS
-( FromText(..), fromText
-, ToText(..)
-, QueueUrl(..)
+( QueueUrl(..)
 , SQSError(..)
 , readQueue
 , drainQueue

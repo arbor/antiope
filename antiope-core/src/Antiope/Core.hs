@@ -44,7 +44,7 @@ import Control.Monad.Reader         (MonadReader)
 import Control.Monad.Trans.AWS
 import Control.Monad.Trans.Class    (lift)
 import Control.Monad.Trans.Resource (MonadResource, MonadUnliftIO, ResourceT)
-import Data.Generics.Product.Fields
+import Data.Generics.Product.Any
 import Data.Generics.Product.Typed
 import Network.AWS.Data.Text        (FromText (..), Text, ToText (..), fromText, toText)
 
@@ -63,23 +63,23 @@ runResAws r = AWS.runResourceT . AWS.runAWS r
 runAwsThe :: forall m r e s a.
   ( MonadUnliftIO m
   , MonadReader r m
-  , HasField' s r e
+  , HasAny s r r e e
   , HasEnv e)
   => AWS.AWS a
   -> m a
 runAwsThe f = do
-  e <- view $ field @s
+  e <- view $ the @s
   AWS.runResourceT $ AWS.runAWS e f
 
 runResAwsThe :: forall m r e s a.
   ( MonadResource m
   , MonadReader r m
-  , HasField' s r e
+  , HasAny s r r e e
   , HasEnv e)
   => AWS.AWS a
   -> m a
 runResAwsThe f = do
-  e <- view $ field @s
+  e <- view $ the @s
   AWS.runAWS e f
 
 runAwsTyped :: forall m r a.

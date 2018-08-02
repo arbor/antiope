@@ -1,1 +1,1 @@
-# antiope-sqs
+# antiope-messages

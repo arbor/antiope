@@ -17,13 +17,12 @@ import Control.Monad       (join)
 import Control.Monad.Loops (unfoldWhileM)
 import Data.Aeson.Lens
 import Data.Maybe          (catMaybes)
-import Data.Text           (Text, pack, unpack)
+import Data.Text           (Text, pack)
 import Network.AWS         (MonadAWS)
-import Network.AWS.S3      (BucketName (BucketName), ObjectKey (ObjectKey))
 import Network.AWS.SQS
 
-import qualified Network.AWS as AWS
-import qualified Network.URI as URI
+import qualified Antiope.Messages as Z
+import qualified Network.AWS      as AWS
 
 -- | Reads the specified SQS queue once returning a bath of messages
 readQueue :: MonadAWS m
@@ -65,16 +64,15 @@ ackMessages (QueueUrl queueUrl) msgs = do
 -- Extract the "Message" content in the body if have
 messageInBody :: Text -> Maybe Text
 messageInBody body = body ^? key "Message" . _String
+{-# DEPRECATED messageInBody
+    "The export of messageInBody is deprecated.  Use the one from Antiope.Messages instead" #-}
 
 messageToS3Uri :: Message -> Maybe S3Uri
-messageToS3Uri msg = join $ messageToS3Uri' <$> msg ^. mBody
+messageToS3Uri = Z.messageToS3Uri
+{-# DEPRECATED messageToS3Uri
+    "The export of messageToS3Uri is deprecated.  Use the one from Antiope.Messages instead" #-}
 
 messageToS3Uri' :: Text -> Maybe S3Uri
-messageToS3Uri' msg = do
-  s3m <- messageInBody msg ^? _Just . key "Records" . nth 0 . key "s3"
-  b   <- s3m ^? key "bucket" . key "name" . _String
-  k   <- s3m ^? key "object" . key "key" . _String
-  pure $ S3Uri (BucketName b) (ObjectKey $ uriDecode k)
-
-uriDecode :: Text -> Text
-uriDecode = pack . URI.unEscapeString . unpack
+messageToS3Uri' = Z.messageToS3Uri'
+{-# DEPRECATED messageToS3Uri'
+  "The export of messageToS3Uri' is deprecated.  Use the one from Antiope.Messages instead" #-}

@@ -3,6 +3,7 @@ packages:
 - antiope-athena
 - antiope-core
 - antiope-dynamodb
+- antiope-messages
 - antiope-s3
 - antiope-sns
 - antiope-sqs

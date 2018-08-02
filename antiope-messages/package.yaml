@@ -1,4 +1,4 @@
-name:                antiope-sqs
+name:                antiope-messages
 version:             5.0.0
 github:              "arbor/antiope"
 license:             MIT
@@ -33,7 +33,6 @@ dependencies:
 - amazonka-core
 - amazonka-sqs
 - amazonka-s3
-- antiope-messages
 - antiope-s3
 - generic-lens
 - lens-aeson
@@ -56,7 +55,7 @@ library:
   source-dirs: src
 
 tests:
-  antiope-sqs-test:
+  antiope-messages-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -64,4 +63,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - antiope-sqs
+    - antiope-messages

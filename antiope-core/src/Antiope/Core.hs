@@ -10,7 +10,7 @@
 module Antiope.Core
   ( module Network.AWS.Data.Text
   , AWS.AWS
-  , AWS.MonadAWS
+  , AWS.MonadAWS(..)
   , AWS.Env
   , AWS.Error(..)
   , AWS.ErrorCode(..), AWS.errorCode
@@ -18,7 +18,6 @@ module Antiope.Core
   , AWS.LogLevel(..)
   , AWS.Region(..)
   , AWS.catching
-  , AWS.liftAWS
   , AWS.runAWS
   , AWS.runResourceT
   , AWS.send

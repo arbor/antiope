@@ -1,28 +1,23 @@
 module Antiope.SQS
-( QueueUrl(..)
-, SQSError(..)
-, readQueue
-, drainQueue
-, ackMessage
-, ackMessages
-, messageInBody
-, messageToS3Uri
-, messageToS3Uri'
-) where
+  ( QueueUrl(..)
+  , SQSError(..)
+  , readQueue
+  , drainQueue
+  , ackMessage
+  , ackMessages
+  , mBody
+  ) where
 
-import Antiope.S3          (S3Uri (..))
-import Antiope.SQS.Types   (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
+import Antiope.Messages    (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
 import Control.Lens
 import Control.Monad       (join)
 import Control.Monad.Loops (unfoldWhileM)
-import Data.Aeson.Lens
 import Data.Maybe          (catMaybes)
-import Data.Text           (Text, pack)
+import Data.Text           (pack)
 import Network.AWS         (MonadAWS)
 import Network.AWS.SQS
 
-import qualified Antiope.Messages as Z
-import qualified Network.AWS      as AWS
+import qualified Network.AWS as AWS
 
 -- | Reads the specified SQS queue once returning a bath of messages
 readQueue :: MonadAWS m
@@ -60,19 +55,3 @@ ackMessages (QueueUrl queueUrl) msgs = do
         [] -> return $ Right ()
         _  -> return $ Left DeleteMessageBatchError
     else return $ Left DeleteMessageBatchError
-
--- Extract the "Message" content in the body if have
-messageInBody :: Text -> Maybe Text
-messageInBody body = body ^? key "Message" . _String
-{-# DEPRECATED messageInBody
-    "The export of messageInBody is deprecated.  Use the one from Antiope.Messages instead" #-}
-
-messageToS3Uri :: Message -> Maybe S3Uri
-messageToS3Uri = Z.messageToS3Uri
-{-# DEPRECATED messageToS3Uri
-    "The export of messageToS3Uri is deprecated.  Use the one from Antiope.Messages instead" #-}
-
-messageToS3Uri' :: Text -> Maybe S3Uri
-messageToS3Uri' = Z.messageToS3Uri'
-{-# DEPRECATED messageToS3Uri'
-  "The export of messageToS3Uri' is deprecated.  Use the one from Antiope.Messages instead" #-}

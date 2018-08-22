@@ -54,6 +54,7 @@ readWhile f = do
   replicateM_ (length taken) RP.get
   return taken
 
+-- As per: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-s3-bucket-naming-requirements.html
 readBucketName :: RP.ReadPrec BucketName
 readBucketName = do
   bucketName <- readWhile bucketNameChar

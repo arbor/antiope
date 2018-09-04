@@ -10,6 +10,7 @@ module Antiope.S3
 , copySingle
 , fromS3Uri
 , toS3Uri
+, lsBucketResponseStream
 , lsBucketStream
 , Region(..)
 , BucketName(..)
@@ -139,10 +140,18 @@ lsBucketPage (Just req) = do
       Just True -> Just $ nextPageReq req resp
       _         -> Nothing
 
--- | Streams the entire set of results (i.e. all pages) of a ListObjectsV2
+-- | Streams all pages of the result (ListObjectsV2Responses) of a ListObjectsV2
+-- request from S3.
+-- lsBucketResponseStream :: MonadAWS m => ListObjectsV2 -> ConduitT i ListObjectsV2Response m ()
+lsBucketResponseStream :: MonadAWS m
+  => ListObjectsV2
+  -> ConduitM a ListObjectsV2Response m ()
+lsBucketResponseStream bar = unfoldM lsBucketPage (Just bar)
+
+-- | Streams all Objects from all pages of the result of a ListObjectsV2
 -- request from S3.
 -- lsBucketStream :: MonadAWS m => ListObjectsV2 -> ConduitT i Object m ()
 lsBucketStream :: MonadAWS m
   => ListObjectsV2
   -> ConduitM a Object m ()
-lsBucketStream bar = unfoldM lsBucketPage (Just bar) .| CC.concatMap (^. lovrsContents)
+lsBucketStream bar = lsBucketResponseStream bar .| CC.concatMap (^. lovrsContents)

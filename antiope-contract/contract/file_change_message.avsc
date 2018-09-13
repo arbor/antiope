@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "FileChangeMessage",
+  "namespace": "net.arbor.kafka",
+  "fields": [
+    { "name": "eventName",                          "type": "string" },
+    { "name": "eventTime",                          "type": "string" },
+    { "name": "bucketName",                         "type": "string" },
+    { "name": "objectKey",                          "type": "string" },
+    { "name": "objectSize",                         "type": "long" },
+    { "name": "objectTag",                          "type": "string" }
+  ]
+}

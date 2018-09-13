@@ -7,6 +7,8 @@ copyright:          Arbor Networks
 license:            MIT
 homepage:           https://github.com/packetloop/antiope-contract#readme
 
+description:         Please see the README on Github at <https://github.com/arbor/antiope#readme>
+
 extra-source-files:
 - contract/file_change_message.avsc
 - contract/resource_changed.avsc

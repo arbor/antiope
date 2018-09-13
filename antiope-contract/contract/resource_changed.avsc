@@ -1,0 +1,9 @@
+{
+  "type": "record",
+  "name": "ResourceChanged",
+  "namespace": "net.arbor",
+  "fields": [
+    { "name": "eventTime", "type": "string" },
+    { "name": "uri",       "type": "string" }
+  ]
+}

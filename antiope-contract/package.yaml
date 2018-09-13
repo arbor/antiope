@@ -1,0 +1,35 @@
+name:               antiope-contract
+version:            6.0.2
+category:           Services
+author:             Arbor Networks
+maintainer:         mayhem@arbor.net
+copyright:          Arbor Networks
+license:            AllRightsReserved
+homepage:           https://github.com/packetloop/antiope-contract#readme
+
+extra-source-files:
+- contract/file_change_message.avsc
+- contract/resource_changed.avsc
+- README.md
+
+dependencies:
+- base >=4.7 && <5
+- aeson
+- antiope-s3
+- avro
+- aeson
+- bytestring
+- text
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Antiope.Contract.SQS.FileChangeMessage
+    - Antiope.Contract.SQS.ResourceChanged
+  ghc-options: -Wall
+  when:
+  - condition: os(osx)
+    cpp-options:
+    - -D__attribute__(A)=
+    - -D_Nullable=
+    - -D_Nonnull=

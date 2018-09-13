@@ -4,7 +4,7 @@ category:           Services
 author:             Arbor Networks
 maintainer:         mayhem@arbor.net
 copyright:          Arbor Networks
-license:            AllRightsReserved
+license:            MIT
 homepage:           https://github.com/packetloop/antiope-contract#readme
 
 extra-source-files:

@@ -62,9 +62,15 @@ readBucketName = do
   return (BucketName (T.pack bucketName))
   where bucketNameChar c = isLower c || isDigit c || c == '.' || c == '-'
 
+-- As per: https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
+readObjectKey :: RP.ReadPrec ObjectKey
+readObjectKey = do
+  objKey <- tail <$> readWhile (/= ' ')
+  when (length objKey <= 0 || length objKey > 1024) RP.pfail
+  return (ObjectKey (T.pack objKey))
+
 instance Read S3Uri where
   readsPrec = RP.readPrec_to_S $ do
     _  <- readString "s3://"
     bn <- readBucketName
-    ok <- ObjectKey . T.pack <$> readWhile (/= ' ')
-    return (S3Uri bn ok)
+    S3Uri bn <$> readObjectKey

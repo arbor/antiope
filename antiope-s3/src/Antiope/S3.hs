@@ -32,7 +32,7 @@ import Data.Conduit.Binary          (sinkLbs)
 import Data.Conduit.Combinators     as CC (concatMap)
 import Data.Conduit.List            (unfoldM)
 import Data.Monoid                  ((<>))
-import Data.Text                    as T (Text, null, pack, unpack)
+import Data.Text                    as T (Text, pack, unpack)
 import Network.AWS                  (Error (..), MonadAWS, ServiceError (..))
 import Network.AWS.Data
 import Network.AWS.Data.Body        (_streamBody)
@@ -50,14 +50,9 @@ fromS3Uri :: Text -> Maybe S3Uri
 fromS3Uri uri = do
   puri <- parseURI (unpack uri)
   auth <- puri & uriAuthority
-  let b = pack $ unEscapeString $ auth & uriRegName       -- URI lib is pretty weird
+  let b = pack $ auth & uriRegName       -- URI lib is pretty weird
   let k = pack $ unEscapeString $ drop 1 $ puri & uriPath
-  S3Uri <$> (BucketName <$> checkEmpty b)
-        <*> (ObjectKey <$> checkEmpty k)
-  where
-    checkEmpty t
-      | T.null t  = Nothing
-      | otherwise = Just t
+  pure $ S3Uri (BucketName b) (ObjectKey k)
 
 downloadLBS :: MonadAWS m
   => BucketName

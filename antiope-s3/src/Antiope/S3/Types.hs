@@ -65,9 +65,9 @@ readBucketName = do
 -- As per: https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
 readObjectKey :: RP.ReadPrec ObjectKey
 readObjectKey = do
-  objKey <- tail <$> readWhile (/= ' ')
-  when (length objKey <= 0 || length objKey > 1024) RP.pfail
-  return (ObjectKey (T.pack objKey))
+  objKey <- readWhile (/= ' ')
+  when (length objKey <= 1 || length objKey > 1025) RP.pfail
+  return (ObjectKey (T.pack $ drop 1 objKey))
 
 instance Read S3Uri where
   readsPrec = RP.readPrec_to_S $ do

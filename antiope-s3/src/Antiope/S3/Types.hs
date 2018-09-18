@@ -67,5 +67,5 @@ instance Read S3Uri where
   readsPrec = RP.readPrec_to_S $ do
     _  <- readString "s3://"
     bn <- readBucketName
-    ok <- ObjectKey . T.pack . unEscapeString <$> readWhile (/= ' ')
+    ok <- ObjectKey . T.pack . unEscapeString . drop 1 <$> readWhile (/= ' ')
     return (S3Uri bn ok)

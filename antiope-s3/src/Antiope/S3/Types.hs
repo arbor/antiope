@@ -22,6 +22,7 @@ import Data.String               (fromString)
 import GHC.Generics
 import Network.AWS.Data
 import Network.AWS.S3            (BucketName (..), ObjectKey (..))
+import Network.URI               (unEscapeString)
 
 import qualified Data.Text                       as T
 import qualified Network.AWS.S3.Types            as X
@@ -66,5 +67,5 @@ instance Read S3Uri where
   readsPrec = RP.readPrec_to_S $ do
     _  <- readString "s3://"
     bn <- readBucketName
-    ok <- ObjectKey . T.pack <$> readWhile (/= ' ')
+    ok <- ObjectKey . T.pack . unEscapeString <$> readWhile (/= ' ')
     return (S3Uri bn ok)

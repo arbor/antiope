@@ -5,8 +5,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Antiope.Core
   ( module Network.AWS.Data.Text
   , AWS.AWS
@@ -32,21 +30,18 @@ module Antiope.Core
   , runResAwsTyped
   ) where
 
+import Antiope.Orphans              ()
 import Control.Lens                 (view)
 import Control.Monad.Logger         (ToLogStr (..))
 import Control.Monad.Reader         (MonadReader)
 import Control.Monad.Trans.AWS
-import Control.Monad.Trans.Class    (lift)
-import Control.Monad.Trans.Resource (MonadResource, MonadUnliftIO, ResourceT)
+import Control.Monad.Trans.Resource (MonadResource, MonadUnliftIO)
 import Data.Generics.Product.Any
 import Data.Generics.Product.Typed
 import Network.AWS.Data.Text        (FromText (..), Text, ToText (..), fromText, toText)
 
 import qualified Control.Monad.Trans.AWS as AWS hiding (send)
 import qualified Network.AWS             as AWS
-
-instance AWS.MonadAWS m => AWS.MonadAWS (ResourceT m) where
-  liftAWS = lift . AWS.liftAWS
 
 runAws :: (MonadResource m, AWS.HasEnv r) => r -> AWS.AWS a -> m a
 runAws = AWS.runAWS

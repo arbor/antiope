@@ -39,6 +39,7 @@ dependencies:
 - http-types
 - lens
 - monad-logger
+- mtl
 - network-uri
 - resourcet
 - text

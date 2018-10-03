@@ -28,8 +28,8 @@ import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
 import Data.ByteString.Lazy         (ByteString, empty)
 import Data.Conduit
-import Data.Conduit.Binary          (sinkLbs)
 import Data.Conduit.Combinators     as CC (concatMap)
+import Data.Conduit.Lazy            (lazyConsume)
 import Data.Conduit.List            (unfoldM)
 import Data.Monoid                  ((<>))
 import Data.Text                    as T (Text, pack, unpack)
@@ -40,8 +40,9 @@ import Network.AWS.S3
 import Network.HTTP.Types.Status    (Status (..))
 import Network.URI                  (URI (..), URIAuth (..), parseURI, unEscapeString)
 
-import qualified Data.ByteString as BS
-import qualified Network.AWS     as AWS
+import qualified Data.ByteString      as BS
+import qualified Data.ByteString.Lazy as LBS
+import qualified Network.AWS          as AWS
 
 chunkSize :: ChunkSize
 chunkSize = ChunkSize (1024 * 1024)
@@ -54,15 +55,15 @@ fromS3Uri uri = do
   let k = pack $ unEscapeString $ drop 1 $ puri & uriPath
   pure $ S3Uri (BucketName b) (ObjectKey k)
 
-downloadLBS :: MonadAWS m
+downloadLBS :: (MonadAWS m, MonadResource m)
   => BucketName
   -> ObjectKey
   -> m ByteString
 downloadLBS bucketName objectKey = do
   resp <- AWS.send $ getObject bucketName objectKey
-  (resp ^. gorsBody) `sinkBody` sinkLbs
+  liftResourceT $ LBS.fromChunks <$> lazyConsume (_streamBody $ resp ^. gorsBody)
 
-downloadLBS' :: MonadAWS m
+downloadLBS' :: (MonadAWS m, MonadResource m)
   => BucketName
   -> ObjectKey
   -> m (Maybe ByteString)
@@ -74,7 +75,7 @@ downloadLBS' bucketName objectKey = do
     Right bs -> return (Just bs)
     Left _   -> return Nothing
 
-downloadS3Uri :: MonadAWS m
+downloadS3Uri :: (MonadAWS m, MonadResource m)
   => S3Uri
   -> m (Maybe ByteString)
 downloadS3Uri (S3Uri b k) = downloadLBS' b k

@@ -21,6 +21,7 @@ dependencies:
 - avro
 - aeson
 - bytestring
+- network-uri
 - text
 
 library:

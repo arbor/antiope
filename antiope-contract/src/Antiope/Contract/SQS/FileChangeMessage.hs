@@ -13,6 +13,7 @@ import Data.Text.Encoding (encodeUtf8)
 import qualified Data.Aeson           as J
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text            as T
+import qualified Network.URI          as URI
 
 -- automagically creates data types and ToAvro/FromAvro instances
 -- for a given schema.
@@ -35,7 +36,7 @@ instance FromJSON FileChangeMessage where
     FileChangeMessage <$> o .: "eventName"
                       <*> o .: "eventTime"
                       <*> o .: "bucketName"
-                      <*> o .: "objectKey"
+                      <*> (T.pack . URI.unEscapeString . T.unpack <$> o .: "objectKey")
                       <*> o .: "objectSize"
                       <*> o .: "objectTag"
 

@@ -41,7 +41,6 @@ ghc-options:
 - -Wcompat
 - -Wincomplete-record-updates
 - -Wincomplete-uni-patterns
-- -O2
 - -msse4.2
 
 library:

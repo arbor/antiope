@@ -2,10 +2,7 @@
 {-# LANGUAGE TupleSections       #-}
 
 module Antiope.S3
-( downloadLBS
-, downloadLBS'
-, downloadS3Uri
-, s3ObjectSource
+( s3ObjectSource
 , putFile, putContent , putContent'
 , copySingle
 , fromS3Uri
@@ -23,21 +20,17 @@ import Antiope.S3.Internal
 import Antiope.S3.Types             (S3Uri (S3Uri))
 import Control.Lens
 import Control.Monad
-import Control.Monad.Catch          (catch)
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
-import Data.ByteString.Lazy         (ByteString, empty)
 import Data.Conduit
 import Data.Conduit.Combinators     as CC (concatMap)
-import Data.Conduit.Lazy            (lazyConsume)
 import Data.Conduit.List            (unfoldM)
 import Data.Monoid                  ((<>))
 import Data.Text                    as T (Text, pack, unpack)
-import Network.AWS                  (Error (..), MonadAWS, ServiceError (..))
+import Network.AWS                  (MonadAWS)
 import Network.AWS.Data
 import Network.AWS.Data.Body        (_streamBody)
 import Network.AWS.S3
-import Network.HTTP.Types.Status    (Status (..))
 import Network.URI                  (URI (..), URIAuth (..), parseURI, unEscapeString)
 
 import qualified Data.ByteString      as BS
@@ -54,31 +47,6 @@ fromS3Uri uri = do
   let b = pack $ auth & uriRegName       -- URI lib is pretty weird
   let k = pack $ unEscapeString $ drop 1 $ puri & uriPath
   pure $ S3Uri (BucketName b) (ObjectKey k)
-
-downloadLBS :: (MonadAWS m, MonadResource m)
-  => BucketName
-  -> ObjectKey
-  -> m ByteString
-downloadLBS bucketName objectKey = do
-  resp <- AWS.send $ getObject bucketName objectKey
-  liftResourceT $ LBS.fromChunks <$> lazyConsume (_streamBody $ resp ^. gorsBody)
-
-downloadLBS' :: (MonadAWS m, MonadResource m)
-  => BucketName
-  -> ObjectKey
-  -> m (Maybe ByteString)
-downloadLBS' bucketName objectKey = do
-  ebs <- (Right <$> downloadLBS bucketName objectKey) `catch` \(err :: Error) -> case err of
-    (ServiceError (ServiceError' _ (Status 404 _) _ _ _ _)) -> return (Left empty)
-    _                                                       -> throwM err
-  case ebs of
-    Right bs -> return (Just bs)
-    Left _   -> return Nothing
-
-downloadS3Uri :: (MonadAWS m, MonadResource m)
-  => S3Uri
-  -> m (Maybe ByteString)
-downloadS3Uri (S3Uri b k) = downloadLBS' b k
 
 s3ObjectSource :: (MonadAWS m, MonadResource m)
   => BucketName
@@ -101,13 +69,13 @@ putFile b k f = do
 putContent :: MonadAWS m
   => BucketName
   -> ObjectKey
-  -> ByteString
+  -> LBS.ByteString
   -> m (Maybe ETag)
 putContent b k c = view porsETag <$> AWS.send (putObject b k (toBody c))
 
 putContent' :: MonadAWS m
   => S3Uri
-  -> ByteString
+  -> LBS.ByteString
   -> m (Maybe ETag)
 putContent' (S3Uri b k) = putContent b k
 

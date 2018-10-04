@@ -31,6 +31,7 @@ dependencies:
 - amazonka        >= 1.6
 - amazonka-core   >= 1.6
 - amazonka-s3     >= 1.6
+- antiope-core
 - bytestring
 - conduit
 - conduit-extra

@@ -2,7 +2,7 @@ module Antiope.S3Spec (spec) where
 
 import Antiope.Core
 import Antiope.Env
-import Antiope.S3
+import Antiope.S3.Lazy
 import Control.Monad.IO.Class
 import Data.Maybe                  (fromJust)
 import HaskellWorks.Hspec.Hedgehog
@@ -22,7 +22,7 @@ spec = describe "Antiope.S3Spec" $ do
       Just remoteS3Uri -> do
         env <- liftIO $ mkEnv Oregon (const LBS.putStrLn)
         liftIO $ runResourceT $ do
-          mlbs <- runAws env $ downloadS3Uri (read remoteS3Uri)
+          mlbs <- runAws env $ downloadLbsFromS3Uri (read remoteS3Uri)
           let lbs = fromJust mlbs
           let !_ = LBS.take 10 lbs
           return ()

@@ -2,10 +2,7 @@
 {-# LANGUAGE TupleSections       #-}
 
 module Antiope.S3
-( downloadLBS
-, downloadLBS'
-, downloadS3Uri
-, s3ObjectSource
+( s3ObjectSource
 , putFile, putContent , putContent'
 , copySingle
 , fromS3Uri
@@ -26,7 +23,6 @@ import Control.Monad
 import Control.Monad.Catch          (catch)
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
-import Data.ByteString.Lazy         (ByteString, empty)
 import Data.Conduit
 import Data.Conduit.Combinators     as CC (concatMap)
 import Data.Conduit.Lazy            (lazyConsume)
@@ -55,31 +51,6 @@ fromS3Uri uri = do
   let k = pack $ unEscapeString $ drop 1 $ puri & uriPath
   pure $ S3Uri (BucketName b) (ObjectKey k)
 
-downloadLBS :: (MonadAWS m, MonadResource m)
-  => BucketName
-  -> ObjectKey
-  -> m ByteString
-downloadLBS bucketName objectKey = do
-  resp <- AWS.send $ getObject bucketName objectKey
-  liftResourceT $ LBS.fromChunks <$> lazyConsume (_streamBody $ resp ^. gorsBody)
-
-downloadLBS' :: (MonadAWS m, MonadResource m)
-  => BucketName
-  -> ObjectKey
-  -> m (Maybe ByteString)
-downloadLBS' bucketName objectKey = do
-  ebs <- (Right <$> downloadLBS bucketName objectKey) `catch` \(err :: Error) -> case err of
-    (ServiceError (ServiceError' _ (Status 404 _) _ _ _ _)) -> return (Left empty)
-    _                                                       -> throwM err
-  case ebs of
-    Right bs -> return (Just bs)
-    Left _   -> return Nothing
-
-downloadS3Uri :: (MonadAWS m, MonadResource m)
-  => S3Uri
-  -> m (Maybe ByteString)
-downloadS3Uri (S3Uri b k) = downloadLBS' b k
-
 s3ObjectSource :: (MonadAWS m, MonadResource m)
   => BucketName
   -> ObjectKey
@@ -101,13 +72,13 @@ putFile b k f = do
 putContent :: MonadAWS m
   => BucketName
   -> ObjectKey
-  -> ByteString
+  -> LBS.ByteString
   -> m (Maybe ETag)
 putContent b k c = view porsETag <$> AWS.send (putObject b k (toBody c))
 
 putContent' :: MonadAWS m
   => S3Uri
-  -> ByteString
+  -> LBS.ByteString
   -> m (Maybe ETag)
 putContent' (S3Uri b k) = putContent b k
 

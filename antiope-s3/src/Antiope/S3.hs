@@ -20,20 +20,17 @@ import Antiope.S3.Internal
 import Antiope.S3.Types             (S3Uri (S3Uri))
 import Control.Lens
 import Control.Monad
-import Control.Monad.Catch          (catch)
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
 import Data.Conduit
 import Data.Conduit.Combinators     as CC (concatMap)
-import Data.Conduit.Lazy            (lazyConsume)
 import Data.Conduit.List            (unfoldM)
 import Data.Monoid                  ((<>))
 import Data.Text                    as T (Text, pack, unpack)
-import Network.AWS                  (Error (..), MonadAWS, ServiceError (..))
+import Network.AWS                  (MonadAWS)
 import Network.AWS.Data
 import Network.AWS.Data.Body        (_streamBody)
 import Network.AWS.S3
-import Network.HTTP.Types.Status    (Status (..))
 import Network.URI                  (URI (..), URIAuth (..), parseURI, unEscapeString)
 
 import qualified Data.ByteString      as BS

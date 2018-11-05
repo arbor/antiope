@@ -1,5 +1,5 @@
 name:                antiope-dynamodb
-version:             6.1.1
+version:             6.1.2
 github:              "arbor/antiope"
 license:             MIT
 category:            Services

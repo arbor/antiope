@@ -12,6 +12,7 @@ module Antiope.S3.Types
   ) where
 
 import Antiope.S3.Internal
+import Control.Applicative
 import Control.Lens
 import Control.Monad
 import Control.Monad.Logger      (ToLogStr (..))
@@ -24,6 +25,8 @@ import Network.AWS.Data
 import Network.AWS.S3            (BucketName (..), ObjectKey (..))
 import Network.URI               (unEscapeString)
 
+import qualified Data.Attoparsec.Combinator      as DAC
+import qualified Data.Attoparsec.Text            as DAT
 import qualified Data.Text                       as T
 import qualified Network.AWS.S3.Types            as X
 import qualified Text.ParserCombinators.ReadPrec as RP
@@ -32,6 +35,15 @@ data S3Uri = S3Uri
   { bucket    :: BucketName
   , objectKey :: ObjectKey
   } deriving (Show, Eq, Generic)
+
+instance FromText S3Uri where
+  parser = do
+    _  <- DAT.string "s3://"
+    bn <- BucketName . T.pack <$> DAC.many1 (DAT.satisfy (\c -> c /= '/' && c /= ' '))
+    _  <- optional (DAT.char '/')
+    ok <- ObjectKey . T.pack <$> many DAT.anyChar
+    DAT.endOfInput
+    return (S3Uri bn ok)
 
 instance ToText S3Uri where
   toText loc = toS3Uri (loc ^. the @"bucket") (loc ^. the @"objectKey")

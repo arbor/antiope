@@ -41,7 +41,7 @@ instance FromText S3Uri where
     _  <- DAT.string "s3://"
     bn <- BucketName . T.pack <$> DAC.many1 (DAT.satisfy (\c -> c /= '/' && c /= ' '))
     _  <- optional (DAT.char '/')
-    ok <- ObjectKey . T.pack . unEscapeString <$> many DAT.anyChar
+    ok <- ObjectKey . T.pack <$> many DAT.anyChar
     DAT.endOfInput
     return (S3Uri bn ok)
 

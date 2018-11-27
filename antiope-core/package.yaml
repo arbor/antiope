@@ -33,6 +33,7 @@ dependencies:
 - monad-logger
 - mtl
 - resourcet
+- text
 - transformers
 - unliftio-core
 

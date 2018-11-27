@@ -53,8 +53,8 @@ instance ToLogStr S3Uri where
   toLogStr s = fromString $ T.unpack $ toText s
 
 data Range = Range
-  { begin :: Int
-  , end   :: Int
+  { first :: Int
+  , last  :: Int
   } deriving (Eq, Show, Generic)
 
 readString :: String -> RP.ReadPrec String

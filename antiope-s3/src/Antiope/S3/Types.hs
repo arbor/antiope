@@ -9,6 +9,7 @@ module Antiope.S3.Types
   , S3Uri(..)
   , readBucketName
   , readWhile
+  , Range(..)
   ) where
 
 import Antiope.S3.Internal
@@ -50,6 +51,11 @@ instance ToText S3Uri where
 
 instance ToLogStr S3Uri where
   toLogStr s = fromString $ T.unpack $ toText s
+
+data Range = Range
+  { begin :: Int
+  , end   :: Int
+  } deriving (Eq, Show, Generic)
 
 readString :: String -> RP.ReadPrec String
 readString s = do

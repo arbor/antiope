@@ -5,7 +5,7 @@ module Antiope.S3.Request
   ( getObjectUri
   ) where
 
-import Antiope.S3.Types
+import Antiope.S3.Types          (S3Uri)
 import Control.Lens
 import Data.Generics.Product.Any
 

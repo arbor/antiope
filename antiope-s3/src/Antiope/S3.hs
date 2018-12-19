@@ -9,6 +9,9 @@ module Antiope.S3
 , toS3Uri
 , lsBucketResponseStream
 , lsBucketStream
+, lsPrefix
+, deleteFiles
+, deleteFilesExcept
 , Region(..)
 , BucketName(..)
 , ObjectKey(..)
@@ -17,28 +20,31 @@ module Antiope.S3
 ) where
 
 import Antiope.S3.Internal
-import Antiope.S3.Types             (S3Uri (S3Uri))
+import Antiope.S3.Types             (S3Uri (S3Uri, objectKey))
+import Conduit
 import Control.Lens
 import Control.Monad
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
-import Data.Conduit
-import Data.Conduit.Combinators     as CC (concatMap)
 import Data.Conduit.List            (unfoldM)
+import Data.Maybe                   (catMaybes)
 import Data.Monoid                  ((<>))
 import Data.Text                    as T (Text, pack, unpack)
 import Network.AWS                  (MonadAWS)
-import Network.AWS.Data
 import Network.AWS.Data.Body        (_streamBody)
+import Network.AWS.Data.Text        (toText)
 import Network.AWS.S3
 import Network.URI                  (URI (..), URIAuth (..), parseURI, unEscapeString)
 
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as LBS
+import qualified Data.List            as List
 import qualified Network.AWS          as AWS
 
 chunkSize :: ChunkSize
 chunkSize = ChunkSize (1024 * 1024)
+
+type Prefix = Text
 
 fromS3Uri :: Text -> Maybe S3Uri
 fromS3Uri uri = do
@@ -123,4 +129,44 @@ lsBucketResponseStream bar = unfoldM lsBucketPage (Just bar)
 lsBucketStream :: MonadAWS m
   => ListObjectsV2
   -> ConduitM a Object m ()
-lsBucketStream bar = lsBucketResponseStream bar .| CC.concatMap (^. lovrsContents)
+lsBucketStream bar = lsBucketResponseStream bar .| concatMapC (^. lovrsContents)
+
+-- | Lists the specified prefix in a bucket.
+lsPrefix :: MonadAWS m
+  => BucketName
+  -> Prefix
+  -> m [S3Uri]
+lsPrefix b p =
+  runConduit $
+    lsBucketStream (listObjectsV2 b & lovPrefix ?~ p)
+    .| mapC (S3Uri b . view oKey)
+    .| sinkList
+
+-- | Deletes specified keys in a bucket.
+-- Returns a list of keys that were successfully deleted.
+--
+-- Will fail monadically (using 'fail') if the response indicates any errors.
+deleteFiles :: MonadAWS m
+  => BucketName
+  -> [ObjectKey]
+  -> m [S3Uri]
+deleteFiles b ks = do
+  let dObjs = delete' & dObjects .~ (objectIdentifier <$> ks)
+  resp <- AWS.send (deleteObjects b dObjs)
+  unless (List.null $ resp ^. drsErrors) $
+    fail (resp ^. drsErrors & show)
+  let deleted = resp ^.. drsDeleted . each . dKey & catMaybes <&> S3Uri b
+  pure deleted
+
+-- | Deletes all the keys in a specified prefix EXCEPT the specified ones.
+-- Returns a list of objects that were successfully deleted.
+deleteFilesExcept :: MonadAWS m
+  => BucketName
+  -> Prefix
+  -> [ObjectKey]
+  -> m [S3Uri]
+deleteFilesExcept b p uris = do
+  existing <- lsPrefix b p
+  case (objectKey <$> existing) List.\\ uris of
+    [] -> pure []
+    xs -> deleteFiles b xs

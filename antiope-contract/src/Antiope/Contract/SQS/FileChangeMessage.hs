@@ -5,7 +5,7 @@
 
 module Antiope.Contract.SQS.FileChangeMessage where
 
-import Antiope.S3
+import Antiope.S3         hiding (bucketName, objectKey)
 import Data.Aeson
 import Data.Avro.Deriving
 import Data.Text.Encoding (encodeUtf8)

@@ -6,15 +6,19 @@ module Antiope.SQS
   , ackMessage
   , ackMessages
   , mBody
+  , queueSource
   ) where
 
-import Antiope.Messages    (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
+import Antiope.Messages         (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
 import Control.Lens
-import Control.Monad       (join)
-import Control.Monad.Loops (unfoldWhileM)
-import Data.Maybe          (catMaybes)
-import Data.Text           (pack)
-import Network.AWS         (MonadAWS)
+import Control.Monad            (join)
+import Control.Monad.Loops      (unfoldWhileM)
+import Control.Monad.Trans      (lift)
+import Data.Conduit
+import Data.Conduit.Combinators (yieldMany)
+import Data.Maybe               (catMaybes)
+import Data.Text                (pack)
+import Network.AWS              (MonadAWS)
 import Network.AWS.SQS
 
 import qualified Network.AWS as AWS
@@ -34,12 +38,14 @@ drainQueue :: MonadAWS m
   -> m [Message]
 drainQueue queueUrl = join <$> unfoldWhileM (not . null) (readQueue queueUrl)
 
+-- | Acknowledges a single SQS message
 ackMessage :: MonadAWS m
   => QueueUrl
   -> Message
   -> m (Either SQSError ())
 ackMessage q msg = ackMessages q [msg]
 
+-- | Acknowledges a group of SQS messages
 ackMessages :: MonadAWS m
   => QueueUrl
   -> [Message]
@@ -55,3 +61,12 @@ ackMessages (QueueUrl queueUrl) msgs = do
         [] -> return $ Right ()
         _  -> return $ Left DeleteMessageBatchError
     else return $ Left DeleteMessageBatchError
+
+-- | Reads from an SQS indefinitely, producing messages into a conduit
+queueSource :: MonadAWS m => QueueUrl -> ConduitT () Message m ()
+queueSource (QueueUrl queueUrl) = do
+  m <- lift $ AWS.send $ receiveMessage queueUrl & rmWaitTimeSeconds ?~ 10 & rmMaxNumberOfMessages ?~ 10
+  yieldMany (m ^. rmrsMessages)
+  queueSource (QueueUrl queueUrl)
+
+

@@ -12,6 +12,7 @@ module Antiope.S3
 , lsPrefix
 , deleteFiles
 , deleteFilesExcept
+, fileExists
 , Region(..)
 , BucketName(..)
 , ObjectKey(..)
@@ -19,6 +20,7 @@ module Antiope.S3
 , S3Uri(..)
 ) where
 
+import Antiope.Core.Error           (handle404ToNone)
 import Antiope.S3.Internal
 import Antiope.S3.Types             (S3Uri (S3Uri, objectKey))
 import Conduit
@@ -27,7 +29,7 @@ import Control.Monad
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
 import Data.Conduit.List            (unfoldM)
-import Data.Maybe                   (catMaybes)
+import Data.Maybe                   (catMaybes, isJust)
 import Data.Monoid                  ((<>))
 import Data.Text                    as T (Text, pack, unpack)
 import Network.AWS                  (MonadAWS)
@@ -170,3 +172,11 @@ deleteFilesExcept b p uris = do
   case (objectKey <$> existing) List.\\ uris of
     [] -> pure []
     xs -> deleteFiles b xs
+
+-- | Checks if the file exists on S3
+fileExists :: MonadAWS m
+  => S3Uri
+  -> m Bool
+fileExists (S3Uri b k) =
+  isJust <$> handle404ToNone (AWS.send (headObject b k))
+

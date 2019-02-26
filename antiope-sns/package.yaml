@@ -1,5 +1,5 @@
 name:                antiope-sns
-version:             6.3.0
+version:             6.4.0
 github:              "arbor/antiope"
 license:             MIT
 category:            Services
@@ -35,6 +35,7 @@ dependencies:
 - generic-lens
 - lens
 - text
+- time
 - unliftio-core
 
 ghc-options:

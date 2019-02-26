@@ -35,6 +35,7 @@ dependencies:
 - generic-lens
 - lens
 - text
+- time
 - unliftio-core
 
 ghc-options:

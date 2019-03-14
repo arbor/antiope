@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/build
     docker:
-      - image: quay.io/haskell_works/stack-build-minimal:2018-01-29
+      - image: quay.io/haskell_works/stack-build-minimal:18.04_2019-03-08
 
     steps:
       - checkout
@@ -35,7 +35,9 @@ jobs:
 
       - run:
           name: Building dependencies
-          command: stack build --only-dependencies
+          command: |
+            stack build aeson
+            stack build --only-dependencies
 
       - run:
           name: Compiling

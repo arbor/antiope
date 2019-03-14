@@ -15,21 +15,21 @@ jobs:
       ##### Building library
       - restore_cache:
           keys:
-            - dot-stack-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
-            - dot-stack-{{ checksum "stack.yaml" }}-build
-            - dot-stack-{{ checksum "stack.yaml" }}-setup
+            - 84yvxld--dot-stack-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
+            - 84yvxld--dot-stack-{{ checksum "stack.yaml" }}-build
+            - 84yvxld--dot-stack-{{ checksum "stack.yaml" }}-setup
 
       - restore_cache:
           keys:
-            - dot-stack-work-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
-            - dot-stack-work-{{ checksum "stack.yaml" }}
+            - 84yvxld--dot-stack-work-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
+            - 84yvxld--dot-stack-work-{{ checksum "stack.yaml" }}
 
       - run:
           name: Stack setup
           command: stack setup
 
       - save_cache:
-          key: dot-stack-{{ checksum "stack.yaml" }}-setup
+          key: 84yvxld--dot-stack-{{ checksum "stack.yaml" }}-setup
           paths:
             - ~/.stack
 
@@ -42,20 +42,20 @@ jobs:
           command: stack build --test --no-run-tests
 
       - save_cache:
-          key: dot-stack-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
+          key: 84yvxld--dot-stack-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
           paths:
             - ~/.stack
       - save_cache:
-          key: dot-stack-{{ checksum "stack.yaml" }}-build
+          key: 84yvxld--dot-stack-{{ checksum "stack.yaml" }}-build
           paths:
             - ~/.stack
 
       - save_cache:
-          key: dot-stack-work-{{ checksum "stack.yaml" }}
+          key: 84yvxld--dot-stack-work-{{ checksum "stack.yaml" }}
           paths: ~/build/.stack-work
 
       - save_cache:
-          key: dot-stack-work-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
+          key: 84yvxld--dot-stack-work-{{ checksum "stack.yaml" }}-{{ checksum "subprojects.txt" }}
           paths: ~/build/.stack-work
 
 

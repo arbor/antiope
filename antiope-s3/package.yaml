@@ -29,9 +29,9 @@ default-extensions:
 dependencies:
 - base >= 4.7 && < 5
 - aeson
-- amazonka        >= 1.6
-- amazonka-core   >= 1.6
-- amazonka-s3     >= 1.6
+- amazonka        >= 1.6.1
+- amazonka-core   >= 1.6.1
+- amazonka-s3     >= 1.6.1
 - antiope-core
 - attoparsec
 - bytestring

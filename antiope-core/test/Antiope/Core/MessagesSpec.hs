@@ -1,0 +1,45 @@
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TypeApplications #-}
+module Antiope.Core.MessagesSpec
+where
+
+import Antiope.Core.Messages
+import Data.Aeson            (decode, encode, (.=))
+import Data.Monoid           ((<>))
+import Data.Scientific       (fromFloatDigits)
+import Data.Text             (Text, pack)
+
+import qualified Data.Aeson as Aeson
+import qualified Data.Text  as Text
+
+import HaskellWorks.Hspec.Hedgehog
+import Hedgehog
+import Hedgehog.Gen                as Gen
+import Hedgehog.Range              as Range
+import Test.Hspec
+
+{-# ANN module ("HLint: Ignore Redundant do" :: String) #-}
+
+jsonObject :: MonadGen m => m Aeson.Value
+jsonObject = do
+  fields  <- Gen.list (Range.linear 0 10) jsonField
+  kvs     <- traverse (\k -> (\v -> k .= v) <$> jsonValue) fields
+  pure $ Aeson.object kvs
+  where
+    jsonValue   = Gen.choice [jsonString, jsonNumber, jsonBool, jsonNull]
+    jsonField   = Gen.text (Range.linear 0 10) Gen.alphaNum
+    jsonString  = Aeson.String <$> Gen.text (Range.linear 0 50) Gen.alphaNum
+    jsonNumber  = (Aeson.Number . fromFloatDigits) <$> Gen.double (Range.linearFrac (-32000.0) 32000.0)
+    jsonBool    = Aeson.Bool <$> Gen.bool
+    jsonNull    = pure Aeson.Null
+
+
+spec :: Spec
+spec = describe "Antiope.Core.MessagesSpec" $ do
+  it "Can encode and decode With" $ require $ property $ do
+    obj <- forAll $ jsonObject
+    tripping (With @"payload" obj) encode decode
+
+  it "Can encode and decode inner-encoded" $ require $ property $ do
+    obj <- forAll $ jsonObject
+    tripping (WithEncoded @"payload" obj) encode decode

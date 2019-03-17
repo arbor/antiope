@@ -72,5 +72,5 @@ tests:
     - antiope-core
     - antiope-s3
     - hedgehog            >= 0.5        && < 0.7
-    - hspec               >= 2.4        && < 2.6
-    - hw-hspec-hedgehog   >= 0.1        && < 0.2
+    - hspec               >= 2.4        && < 2.7
+    - hw-hspec-hedgehog   >= 0.1        && < 0.3

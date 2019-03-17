@@ -6,15 +6,17 @@ module Antiope.S3.Messages
   , readEventName
   ) where
 
-import Antiope.S3      (BucketName (..), ETag (..), ObjectKey (..))
-import Data.Aeson      as Aeson
-import Data.Int        (Int64)
-import Data.Text       (Text)
-import Data.Time.Clock (UTCTime)
-import GHC.Generics    (Generic)
+import Antiope.S3            (BucketName (..), ETag (..), ObjectKey (..))
+import Data.Aeson            as Aeson
+import Data.Int              (Int64)
+import Data.Text             (Text)
+import Data.Time.Clock       (UTCTime)
+import GHC.Generics          (Generic)
+import Network.AWS.Data.Text (toText)
 
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
+import qualified Network.URI        as URI
 
 data EventName = EventName
   { eventType :: !Text
@@ -27,7 +29,7 @@ data S3Message = S3Message
   , bucket    :: !BucketName
   , key       :: !ObjectKey
   , size      :: !Int64
-  , etag      :: !(Maybe ETag)
+  , eTag      :: !(Maybe ETag)
   } deriving (Show, Eq, Generic)
 
 instance FromJSON S3Message where
@@ -38,10 +40,24 @@ instance FromJSON S3Message where
     bkt   <- s3 .: "bucket"
     obj'  <- s3 .: "object"
     bName <- BucketName <$> (bkt .: "name")
-    oKey  <- ObjectKey <$> (obj' .: "key")
+    oKey  <- (ObjectKey . T.pack . URI.unEscapeString . T.unpack) <$> (obj' .: "key")
     oSize <- obj' .: "size"
     oEtag  <- fmap (ETag . T.encodeUtf8) <$> (obj' .:? "eTag")
     pure $ S3Message eTime eName bName oKey oSize oEtag
+
+instance ToJSON S3Message where
+  toJSON msg = Aeson.object
+    [ "eventTime" .= eventTime msg
+    , "eventName" .= T.intercalate ":" ["s3", eventType (eventName msg), action (eventName msg)]
+    , "s3"        .= Aeson.object
+                      [ "bucket"    .= object [ "name" .= toText (bucket msg)]
+                      , "object"    .= object
+                                        [ "key"  .= (T.pack . URI.escapeURIString URI.isAllowedInURI . T.unpack . toText . key) msg
+                                        , "size"      .= size msg
+                                        , "eTag"      .= fmap toText (eTag msg)
+                                        ]
+                      ]
+    ]
 
 readEventName :: T.Text -> EventName
 readEventName evt =

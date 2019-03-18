@@ -32,9 +32,8 @@ dependencies:
 - amazonka
 - amazonka-core
 - amazonka-sqs
-- amazonka-s3
 - antiope-messages
-- antiope-s3
+- bytestring
 - conduit
 - generic-lens
 - lens-aeson
@@ -66,3 +65,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - antiope-sqs
+    - hedgehog            >= 0.5        && < 0.7
+    - hspec               >= 2.4        && < 2.7
+    - hw-hspec-hedgehog   >= 0.1        && < 0.3
+    - time

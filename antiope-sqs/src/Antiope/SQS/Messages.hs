@@ -9,8 +9,9 @@ import Data.Aeson   as Aeson
 import Data.Text    (Text)
 import GHC.Generics (Generic)
 
-import qualified Data.Aeson.Types   as Aeson
-import qualified Data.Text.Encoding as T
+import qualified Data.Aeson.Types     as Aeson
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Text.Encoding   as Text
 
 newtype Many a = Many { records :: [a] } deriving (Show, Eq, Generic)
 
@@ -39,7 +40,16 @@ instance FromJSON a => FromJSON (SqsMessage a) where
     <*> obj .:? "ReceiptHandle"
     <*> decodeEscaped obj "Body"
 
+instance ToJSON a => ToJSON (SqsMessage a) where
+  toJSON msg = object
+    [ "SenderId"      .= senderId msg
+    , "MessageId"     .= messageId msg
+    , "Md5OfBody"     .= md5OfBody msg
+    , "ReceiptHandle" .= receiptHandle msg
+    , "Body"          .= (Text.decodeUtf8 . LBS.toStrict . encode . body) msg
+    ]
+
 decodeEscaped :: FromJSON b => Object -> Text -> Aeson.Parser b
 decodeEscaped o t =
-  (o .: t) >>= (either fail pure . eitherDecodeStrict . T.encodeUtf8)
+  (o .: t) >>= (either fail pure . eitherDecodeStrict . Text.encodeUtf8)
 

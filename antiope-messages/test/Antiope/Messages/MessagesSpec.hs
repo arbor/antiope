@@ -1,13 +1,13 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
-module Antiope.Core.MessagesSpec
+module Antiope.Messages.MessagesSpec
 where
 
-import Antiope.Core.Messages
-import Data.Aeson            (decode, encode, (.=))
-import Data.Monoid           ((<>))
-import Data.Scientific       (fromFloatDigits)
-import Data.Text             (Text, pack)
+import Antiope.Messages
+import Data.Aeson       (decode, encode, (.=))
+import Data.Monoid      ((<>))
+import Data.Scientific  (fromFloatDigits)
+import Data.Text        (Text, pack)
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Text  as Text

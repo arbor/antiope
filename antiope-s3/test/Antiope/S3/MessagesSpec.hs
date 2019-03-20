@@ -50,15 +50,15 @@ s3Message = do
   bkt   <- Gen.text (Range.linear 1 20) Gen.alphaNum
   file  <- Gen.text (Range.linear 1 20) Gen.alphaNum
   path  <- Gen.choice [datedPath, randomPath]
-  size  <- Gen.int64 (Range.linear 0 maxBound)
+  sz    <- Gen.int64 (Range.linear 0 maxBound)
   etag  <- Gen.maybe (Gen.utf8 (Range.singleton 10) Gen.alphaNum)
   pure S3Message
     { eventTime = time
     , eventName = EventName eType eName
-    , bucket = BucketName bkt
-    , key = ObjectKey (path <> "/" <> file)
-    , size = size
-    , eTag = fmap ETag etag
+    , bucket    = BucketName bkt
+    , key       = ObjectKey (path <> "/" <> file)
+    , size      = sz
+    , eTag      = fmap ETag etag
     }
 
 spec :: Spec

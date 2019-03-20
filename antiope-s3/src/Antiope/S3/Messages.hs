@@ -3,7 +3,7 @@
 module Antiope.S3.Messages
   ( EventName(..)
   , S3Message(..)
-  , readEventName
+  , messageToS3Uri
   ) where
 
 import Antiope.S3            (BucketName (..), ETag (..), ObjectKey (..))
@@ -14,9 +14,13 @@ import Data.Time.Clock       (UTCTime)
 import GHC.Generics          (Generic)
 import Network.AWS.Data.Text (toText)
 
+import qualified Antiope.S3.Types   as Types
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Network.URI        as URI
+
+messageToS3Uri :: S3Message -> Types.S3Uri
+messageToS3Uri msg = Types.S3Uri (bucket msg) (key msg)
 
 data EventName = EventName
   { eventType :: !Text

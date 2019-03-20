@@ -12,8 +12,6 @@ import Hedgehog.Gen                as Gen
 import Hedgehog.Range              as Range
 import Test.Hspec
 
-import Debug.Trace
-
 {-# ANN module ("HLint: Ignore Redundant do" :: String) #-}
 
 spec :: Spec
@@ -21,7 +19,7 @@ spec = describe "Antiope.SNS.MessagesSpec" $ do
   it "Can encode and decode SnsMessage" $ require $ property $ do
     body <- forAll $ simpleJson
     msg  <- forAll $ snsMessageGen body
-    tripping (traceShowId msg) encode decode
+    tripping msg encode decode
 
 simpleJson :: MonadGen m => m Value
 simpleJson = do
@@ -29,7 +27,7 @@ simpleJson = do
   numVal <- Gen.double (Range.linearFrac (-32000.0) 32000.0)
   pure $ object [ "text" .= txtVal, "num" .= numVal ]
 
-snsMessageGen :: (FromJSON a, ToJSON a, MonadGen m) => a -> m (SnsMessage a)
+snsMessageGen :: MonadGen m => a -> m (SnsMessage a)
 snsMessageGen a = do
   let txtGen = Gen.text (Range.linear 1 25) Gen.alphaNum
   SnsMessage

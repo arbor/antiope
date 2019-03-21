@@ -35,7 +35,6 @@ library
     , http-client
     , http-types
     , lens
-    , monad-logger
     , mtl
     , resourcet
     , text
@@ -71,7 +70,6 @@ test-suite antiope-core-test
     , http-types
     , hw-hspec-hedgehog >=0.1 && <0.3
     , lens
-    , monad-logger
     , mtl
     , resourcet
     , scientific

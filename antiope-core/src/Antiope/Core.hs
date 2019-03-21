@@ -21,7 +21,6 @@ module Antiope.Core
   , AWS.send
   , AWS.sinkMD5, AWS.sinkSHA256
   , MonadResource
-  , ToLogStr(..)
   , runAws
   , runAwsThe
   , runAwsTyped
@@ -32,7 +31,6 @@ module Antiope.Core
 
 import Antiope.Orphans              ()
 import Control.Lens                 (view)
-import Control.Monad.Logger         (ToLogStr (..))
 import Control.Monad.Reader         (MonadReader)
 import Control.Monad.Trans.AWS
 import Control.Monad.Trans.Resource (MonadResource, MonadUnliftIO)

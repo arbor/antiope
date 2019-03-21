@@ -56,7 +56,6 @@ library
     , generic-lens
     , http-types
     , lens
-    , monad-logger
     , mtl
     , network-uri
     , resourcet
@@ -94,7 +93,6 @@ test-suite antiope-s3-test
     , http-types
     , hw-hspec-hedgehog >=0.1 && <0.3
     , lens
-    , monad-logger
     , mtl
     , network-uri
     , resourcet

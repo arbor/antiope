@@ -1,14 +1,15 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 module Antiope.Messages.Types
-( WithEncoded(..), fromWithEncoded
-, With(..), fromWith
+( WithEncoded(..)
+, With(..)
+, FromWith(..)
+, fromWith2, fromWith3
 ) where
 
 import Data.Aeson   (FromJSON (..), ToJSON (..), eitherDecodeStrict, encode, withObject, (.:), (.=))
@@ -22,19 +23,41 @@ import           Data.Proxy
 import qualified Data.Text            as Text
 import qualified Data.Text.Encoding   as Text
 
+-- | Extracts value from 'With' and 'WithEncoded' wrappers
+class FromWith f where
+  fromWith :: f a -> a -- ^ Extracts value from 'With' and 'WithEncoded'
+
+instance FromWith (With x) where
+  fromWith (With a) = a
+
+instance FromWith (WithEncoded x) where
+  fromWith (WithEncoded a) = a
+
+-- | Extracts a value from any combination of two 'With' and/or 'WithEncoded'
+--
+-- @
+-- fromWith2 @(With "one" (WithEncoded "two" True)) == True
+-- @
+fromWith2 :: (FromWith f, FromWith g) => f (g a) -> a
+fromWith2 = fromWith . fromWith
+{-# INLINE fromWith2 #-}
+
+-- | Extracts a value from any combination of two 'With' and/or 'WithEncoded'
+--
+-- @
+-- fromWith3 @(With "one" (WithEncoded "two" (With "three" True))) == True
+-- @
+fromWith3 :: (FromWith f, FromWith g, FromWith h) => f (g (h a)) -> a
+fromWith3 = fromWith . fromWith . fromWith
+{-# INLINE fromWith3 #-}
+
 -- | Represents a JSON value of type 'a' that is encoded as a string in a field 'fld'
 data WithEncoded (fld :: Symbol) a where
   WithEncoded :: forall fld a. KnownSymbol fld => a -> WithEncoded fld a
 
-fromWithEncoded :: WithEncoded fld a -> a
-fromWithEncoded (WithEncoded a) = a
-
 -- | Represents a JSON value of type 'a' in a field 'fld'
 data With (fld :: Symbol) a where
   With :: forall fld a. KnownSymbol fld => a -> With fld a
-
-fromWith :: With fld a -> a
-fromWith (With a) = a
 
 instance Show a => Show (WithEncoded fld a) where
   show (WithEncoded a) = show a

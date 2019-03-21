@@ -44,7 +44,6 @@ library
       Antiope.Core
       Antiope.Core.Error
       Antiope.Core.Internal.Show
-      Antiope.Core.Messages
       Antiope.Env
       Antiope.Orphans
   default-language: Haskell2010

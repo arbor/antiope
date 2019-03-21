@@ -1,12 +1,16 @@
-{-# LANGUAGE DeriveGeneric #-}
-
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE TypeApplications #-}
 module Antiope.S3.Messages
   ( EventName(..)
   , S3Message(..)
   , messageToS3Uri
+  , fromSnsRecords
   ) where
 
+import Antiope.Messages
 import Antiope.S3            (BucketName (..), ETag (..), ObjectKey (..))
+import Control.Lens          (each, to, (^..), _Just)
 import Data.Aeson            as Aeson
 import Data.Int              (Int64)
 import Data.Text             (Text)
@@ -21,6 +25,13 @@ import qualified Network.URI        as URI
 
 messageToS3Uri :: S3Message -> Types.S3Uri
 messageToS3Uri msg = Types.S3Uri (bucket msg) (key msg)
+
+fromSnsRecords :: Text -> [S3Message]
+fromSnsRecords msg =
+  Aeson.decodeStrict' @(WithEncoded "Message" (With "Records" [S3Message])) (T.encodeUtf8 msg)
+    ^.. _Just
+    . to fromWith2
+    . each
 
 data EventName = EventName
   { eventType :: !Text

@@ -3,13 +3,14 @@
 
 module Antiope.SQS.Messages
   ( SqsMessage (..)
+  , Message, mBody
+  , QueueUrl
   , fromMessage, fromMessageMaybe
   , decodeBody
   ) where
 
 import Antiope.SQS.Types
-import Control.Lens      ((^.))
-import Control.Lens      ((&), (<&>))
+import Control.Lens      ((&), (<&>), (^.))
 import Data.Aeson        as Aeson
 import Data.Text         (Text)
 import GHC.Generics      (Generic)

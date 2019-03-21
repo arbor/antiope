@@ -9,6 +9,17 @@ import GHC.Generics          (Generic)
 import Network.AWS.Data.Text (FromText (..), ToText (..))
 import Network.AWS.SQS       (Message, mReceiptHandle)
 
+-- | Queue consuming mode
+data ConsumerMode
+  = Drain   -- ^ Keep consuming the queue until there are no messages
+  | Forever -- ^ Keep consuming the queue forever
+  deriving (Show, Eq, Generic)
+
+data ConsumerResult
+  = Ack
+  | Nack
+  deriving (Show, Eq, Generic)
+
 data SQSError = DeleteMessageBatchError
   deriving (Eq, Show, Generic)
 

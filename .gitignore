@@ -19,18 +19,20 @@ docker/rdkafka/
 .Trashes
 
 ### Haskell ###
-dist
+dist/
+dist-newstyle/
 cabal-dev
+.ghc.environment*
 *.o
 *.hi
 *.chi
 *.chs.h
 .virthualenv
 .hsenv
-*.cabal
 .cabal-sandbox/
 cabal.sandbox.config
 cabal.config
+cabal.project.local
 .stack-work/
 *.aux
 *.ps

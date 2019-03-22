@@ -1,25 +1,35 @@
 module Antiope.SQS
   ( QueueUrl(..)
   , SQSError(..)
+  , HasReceiptHandle
+  , ConsumerMode(..)
+  , ConsumerResult(..)
   , readQueue
   , drainQueue
   , ackMessage
   , ackMessages
-  , mBody
   , queueSource
+  , forAllMessages
+
+  -- * Re-exports
+  , Message
+  , mBody, mMD5OfBody, mMessageId, mReceiptHandle, mAttributes
   ) where
 
-import Antiope.Messages         (QueueUrl (QueueUrl), SQSError (DeleteMessageBatchError))
 import Control.Lens
-import Control.Monad            (join)
+import Control.Monad            (forM_, join, void)
+import Control.Monad.IO.Unlift  (MonadUnliftIO)
 import Control.Monad.Loops      (unfoldWhileM)
 import Control.Monad.Trans      (lift)
+import Data.Coerce              (coerce)
 import Data.Conduit
 import Data.Conduit.Combinators (yieldMany)
 import Data.Maybe               (catMaybes)
 import Data.Text                (pack)
-import Network.AWS              (MonadAWS)
+import Network.AWS              (HasEnv, MonadAWS, runAWS, runResourceT)
 import Network.AWS.SQS
+
+import Antiope.SQS.Types
 
 import qualified Network.AWS as AWS
 
@@ -39,21 +49,21 @@ drainQueue :: MonadAWS m
 drainQueue queueUrl = join <$> unfoldWhileM (not . null) (readQueue queueUrl)
 
 -- | Acknowledges a single SQS message
-ackMessage :: MonadAWS m
+ackMessage :: (MonadAWS m, HasReceiptHandle msg)
   => QueueUrl
-  -> Message
+  -> msg
   -> m (Either SQSError ())
 ackMessage q msg = ackMessages q [msg]
 
 -- | Acknowledges a group of SQS messages
-ackMessages :: MonadAWS m
+ackMessages :: (MonadAWS m, HasReceiptHandle msg)
   => QueueUrl
-  -> [Message]
+  -> [msg]
   -> m (Either SQSError ())
 ackMessages (QueueUrl queueUrl) msgs = do
-  let receipts = catMaybes $ msgs ^.. each . mReceiptHandle
+  let receipts = msgs ^.. each . to getReceiptHandle & catMaybes
   -- each dmbr needs an ID. just use the list index.
-  let dmbres = (\(r, i) -> deleteMessageBatchRequestEntry (pack (show i)) r) <$> zip receipts ([0..] :: [Int])
+  let dmbres = (\(r, i) -> deleteMessageBatchRequestEntry (pack (show i)) r) <$> zip (coerce receipts) ([0..] :: [Int])
   resp <- AWS.send $ deleteMessageBatch queueUrl & dmbEntries .~ dmbres
   -- only acceptable if no errors.
   if resp ^. dmbrsResponseStatus == 200
@@ -69,4 +79,22 @@ queueSource (QueueUrl queueUrl) = do
   yieldMany (m ^. rmrsMessages)
   queueSource (QueueUrl queueUrl)
 
-
+forAllMessages :: (MonadUnliftIO m, HasEnv env)
+  => env
+  -> QueueUrl
+  -> ConsumerMode
+  -> (Message -> m ConsumerResult)
+  -> m ()
+forAllMessages env queue mode process = go
+  where
+    go = do
+      msgs <- runResourceT $ runAWS env (readQueue queue)
+      case (mode, msgs) of
+        (Drain, []) -> pure ()
+        _           -> processBatch msgs >> go
+    processBatch msgs =
+      forM_ msgs $ \msg -> do
+        res <- process msg
+        case res of
+          Ack  -> void . runResourceT . runAWS env $ (ackMessage queue msg)
+          Nack -> pure ()

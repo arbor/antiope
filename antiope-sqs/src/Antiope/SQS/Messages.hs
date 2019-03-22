@@ -1,45 +1,62 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Antiope.SQS.Messages
-  ( Many (..)
-  , SqsMessage (..)
+  ( SqsMessage (..)
+  , Message, mBody
+  , QueueUrl
+  , fromMessage, fromMessageMaybe
+  , decodeBody
   ) where
 
-import Data.Aeson   as Aeson
-import Data.Text    (Text)
-import GHC.Generics (Generic)
+import Antiope.SQS.Types
+import Control.Lens      ((&), (<&>), (^.))
+import Data.Aeson        as Aeson
+import Data.Text         (Text)
+import GHC.Generics      (Generic)
+import Network.AWS.SQS   (Message, mAttributes, mBody, mMD5OfBody, mMessageId, mReceiptHandle)
 
-import qualified Data.Aeson.Types   as Aeson
-import qualified Data.Text.Encoding as T
+import qualified Data.HashMap.Strict as Hash
+import qualified Data.Text.Encoding  as Text
+import qualified Network.AWS.SQS     as SQS
 
-newtype Many a = Many { records :: [a] } deriving (Show, Eq, Generic)
+-- | Converts 'Message` into 'SqsMessage' if its body is decodable as 'a'
+fromMessageMaybe :: FromJSON a => Message -> Maybe (SqsMessage a)
+fromMessageMaybe msg =
+  let smsg = fromMessage msg
+  in body smsg <&> (\a -> smsg { body = a})
 
-instance FromJSON a => FromJSON (Many a) where
-  parseJSON =
-    withObject "Many" $ \obj ->
-      Many <$> obj .: "Records"
-
-instance ToJSON a => ToJSON (Many a) where
-  toJSON (Many a) =
-    object ["Records" Aeson..= a]
+-- | Converts a 'Message' into 'SqsMessage'
+fromMessage :: FromJSON a => Message -> SqsMessage (Maybe a)
+fromMessage msg =
+  let attr a = msg ^. mAttributes & Hash.lookup a
+  in SqsMessage
+        { messageId                         = msg ^. mMessageId
+        , receiptHandle                     = msg ^. mReceiptHandle <&> ReceiptHandle
+        , md5OfBody                         = msg ^. mMD5OfBody
+        , senderId                          = attr SQS.SenderId
+        , sendTimestamp                     = attr SQS.SentTimestamp
+        , approximateReceiveCount           = attr SQS.ApproximateReceiveCount
+        , approximateFirstReceiveTimestamp  = attr SQS.ApproximateFirstReceiveTimestamp
+        , body                              = decodeBody msg
+        }
 
 data SqsMessage a = SqsMessage
-  { senderId      :: !(Maybe Text)
-  , messageId     :: !(Maybe Text)
-  , md5OfBody     :: !(Maybe Text)
-  , receiptHandle :: !(Maybe Text)
-  , body          :: !(Maybe a)
-  } deriving (Show, Eq, Generic)
+  { senderId                         :: !(Maybe Text)
+  , messageId                        :: !(Maybe Text)
+  , md5OfBody                        :: !(Maybe Text)
+  , receiptHandle                    :: !(Maybe ReceiptHandle)
+  , sendTimestamp                    :: !(Maybe Text)
+  , approximateReceiveCount          :: !(Maybe Text)
+  , approximateFirstReceiveTimestamp :: !(Maybe Text)
+  , body                             :: !a
+  } deriving (Show, Eq, Generic, Functor)
 
-instance FromJSON a => FromJSON (SqsMessage a) where
-  parseJSON = withObject "SqsMessage" $ \obj -> SqsMessage
-    <$> obj .:? "SenderId"
-    <*> obj .:? "MessageId"
-    <*> obj .:? "Md5OfBody"
-    <*> obj .:? "ReceiptHandle"
-    <*> decodeEscaped obj "Body"
+instance HasReceiptHandle (SqsMessage a) where
+  getReceiptHandle = receiptHandle
 
-decodeEscaped :: FromJSON b => Object -> Text -> Aeson.Parser b
-decodeEscaped o t =
-  (o .: t) >>= (either fail pure . eitherDecodeStrict . T.encodeUtf8)
+-------------------------------------------------------------------------------
 
+decodeBody :: FromJSON a => Message -> Maybe a
+decodeBody msg =
+  msg ^. mBody >>= (Aeson.decodeStrict . Text.encodeUtf8)

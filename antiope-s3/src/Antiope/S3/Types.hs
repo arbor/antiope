@@ -16,7 +16,6 @@ import Antiope.S3.Internal
 import Control.Applicative
 import Control.Lens
 import Control.Monad
-import Control.Monad.Logger      (ToLogStr (..))
 import Data.Char
 import Data.Generics.Product.Any
 import Data.List
@@ -48,9 +47,6 @@ instance FromText S3Uri where
 
 instance ToText S3Uri where
   toText loc = toS3Uri (loc ^. the @"bucket") (loc ^. the @"objectKey")
-
-instance ToLogStr S3Uri where
-  toLogStr s = fromString $ T.unpack $ toText s
 
 data Range = Range
   { first :: Int

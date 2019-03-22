@@ -1,7 +1,7 @@
 cabal-version: 2.2
 
 name:           antiope-sns
-version:        6.4.0
+version:        7.0.0
 synopsis:       Please see the README on Github at <https://github.com/arbor/antiope#readme>
 description:    Please see the README on Github at <https://github.com/arbor/antiope#readme>.
 category:       Services

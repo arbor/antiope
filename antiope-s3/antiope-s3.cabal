@@ -7,7 +7,7 @@ cabal-version: 2.2
 -- hash: 8a36985fa18723b082538f34eb086ed7df8a972cb70df24354d3250f5503ceb1
 
 name:           antiope-s3
-version:        6.4.0
+version:        7.0.0
 synopsis:       Please see the README on Github at <https://github.com/arbor/antiope#readme>
 description:    Please see the README on Github at <https://github.com/arbor/antiope#readme>.
 category:       Services

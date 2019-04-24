@@ -23,23 +23,23 @@ workflows:
           executor: haskell/ghc-8_6_4
           context: haskell-ci
 
-      - github/release-cabal:
-          name: GitHub Release
-          context: haskell-ci
-          requires:
-            - GHC 8.2.2
-            - GHC 8.4.4
-            - GHC 8.6.4
-          checkout: true
-          filters:
-            branches:
-              only: master
+      # - github/release-cabal:
+      #     name: GitHub Release
+      #     context: haskell-ci
+      #     requires:
+      #       - GHC 8.2.2
+      #       - GHC 8.4.4
+      #       - GHC 8.6.4
+      #     checkout: true
+      #     filters:
+      #       branches:
+      #         only: master
 
-      - hackage/upload:
-          context: haskell-ci
-          publish: true
-          requires:
-            - GitHub Release
-          username: ${HACKAGE_USER}
-          password: ${HACKAGE_PASS}
+      # - hackage/upload:
+      #     context: haskell-ci
+      #     publish: true
+      #     requires:
+      #       - GitHub Release
+      #     username: ${HACKAGE_USER}
+      #     password: ${HACKAGE_PASS}
 

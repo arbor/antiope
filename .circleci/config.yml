@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  haskell: haskell-works/haskell-build-2@1.6.6
+  haskell: haskell-works/haskell-build-2@1.6.7
   github: haskell-works/github-release@1.2.1
   hackage: haskell-works/hackage@1.0.0
 
@@ -23,23 +23,23 @@ workflows:
           executor: haskell/ghc-8_6_4
           context: haskell-ci
 
-      - github/release-cabal:
-          name: GitHub Release
-          context: haskell-ci
-          requires:
-            - GHC 8.2.2
-            - GHC 8.4.4
-            - GHC 8.6.4
-          checkout: true
-          filters:
-            branches:
-              only: master
+      # - github/release-cabal:
+      #     name: GitHub Release
+      #     context: haskell-ci
+      #     requires:
+      #       - GHC 8.2.2
+      #       - GHC 8.4.4
+      #       - GHC 8.6.4
+      #     checkout: true
+      #     filters:
+      #       branches:
+      #         only: master
 
-      - hackage/upload:
-          context: haskell-ci
-          publish: true
-          requires:
-            - GitHub Release
-          username: ${HACKAGE_USER}
-          password: ${HACKAGE_PASS}
+      # - hackage/upload:
+      #     context: haskell-ci
+      #     publish: true
+      #     requires:
+      #       - GitHub Release
+      #     username: ${HACKAGE_USER}
+      #     password: ${HACKAGE_PASS}
 

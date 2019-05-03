@@ -1,18 +1,18 @@
 cabal-version: 2.2
 
-name:           antiope-sns
-version:        7.0.0
-synopsis:       Please see the README on Github at <https://github.com/arbor/antiope#readme>
-description:    Please see the README on Github at <https://github.com/arbor/antiope#readme>.
-category:       Services
-homepage:       https://github.com/arbor/antiope#readme
-bug-reports:    https://github.com/arbor/antiope/issues
-author:         Arbor Networks
-maintainer:     mayhem@arbor.net
-copyright:      Arbor Networks
-license:        MIT
-license-file:   LICENSE
-build-type:     Simple
+name:               antiope-sns
+version:            7.0.1
+synopsis:           Please see the README on Github at <https://github.com/arbor/antiope#readme>
+description:        Please see the README on Github at <https://github.com/arbor/antiope#readme>.
+category:           Services
+homepage:           https://github.com/arbor/antiope#readme
+bug-reports:        https://github.com/arbor/antiope/issues
+author:             Arbor Networks
+maintainer:         mayhem@arbor.net
+copyright:          Arbor Networks
+license:            MIT
+license-file:       LICENSE
+build-type:         Simple
 extra-source-files:
     README.md
     ChangeLog.md

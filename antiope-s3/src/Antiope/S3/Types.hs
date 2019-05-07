@@ -34,7 +34,7 @@ import qualified Text.ParserCombinators.ReadPrec as RP
 data S3Uri = S3Uri
   { bucket    :: BucketName
   , objectKey :: ObjectKey
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Ord, Generic)
 
 instance FromText S3Uri where
   parser = do

@@ -63,7 +63,8 @@ ackMessages :: (MonadAWS m, HasReceiptHandle msg)
   -> m (Either SQSError ())
 ackMessages (QueueUrl queueUrl) msgs = do
   let receipts' = msgs ^.. each . to getReceiptHandle & catMaybes
-  results <- forM (chunksOf 10 receipts') $ \receipts -> do
+  let maxBatchSize = 10 -- Amazon enforces this
+  results <- forM (chunksOf maxBatchSize receipts') $ \receipts -> do
     -- each dmbr needs an ID. just use the list index.
     let dmbres = (\(r, i) -> deleteMessageBatchRequestEntry (pack (show i)) r) <$> zip (coerce receipts) ([0..] :: [Int])
     resp <- AWS.send $ deleteMessageBatch queueUrl & dmbEntries .~ dmbres

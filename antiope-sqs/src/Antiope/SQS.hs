@@ -17,13 +17,14 @@ module Antiope.SQS
   ) where
 
 import Control.Lens
-import Control.Monad            (forM_, join, void)
+import Control.Monad            (forM, forM_, join, void)
 import Control.Monad.IO.Unlift  (MonadUnliftIO)
 import Control.Monad.Loops      (unfoldWhileM)
 import Control.Monad.Trans      (lift)
 import Data.Coerce              (coerce)
 import Data.Conduit
 import Data.Conduit.Combinators (yieldMany)
+import Data.List.Split          (chunksOf)
 import Data.Maybe               (catMaybes)
 import Data.Text                (pack)
 import Network.AWS              (HasEnv, MonadAWS, runAWS, runResourceT)
@@ -61,16 +62,20 @@ ackMessages :: (MonadAWS m, HasReceiptHandle msg)
   -> [msg]
   -> m (Either SQSError ())
 ackMessages (QueueUrl queueUrl) msgs = do
-  let receipts = msgs ^.. each . to getReceiptHandle & catMaybes
-  -- each dmbr needs an ID. just use the list index.
-  let dmbres = (\(r, i) -> deleteMessageBatchRequestEntry (pack (show i)) r) <$> zip (coerce receipts) ([0..] :: [Int])
-  resp <- AWS.send $ deleteMessageBatch queueUrl & dmbEntries .~ dmbres
-  -- only acceptable if no errors.
-  if resp ^. dmbrsResponseStatus == 200
-    then case resp ^. dmbrsFailed of
-        [] -> return $ Right ()
-        _  -> return $ Left DeleteMessageBatchError
-    else return $ Left DeleteMessageBatchError
+  let receipts' = msgs ^.. each . to getReceiptHandle & catMaybes
+  let maxBatchSize = 10 -- Amazon enforces this
+  results <- forM (chunksOf maxBatchSize receipts') $ \receipts -> do
+    -- each dmbr needs an ID. just use the list index.
+    let dmbres = (\(r, i) -> deleteMessageBatchRequestEntry (pack (show i)) r) <$> zip (coerce receipts) ([0..] :: [Int])
+    resp <- AWS.send $ deleteMessageBatch queueUrl & dmbEntries .~ dmbres
+    -- only acceptable if no errors.
+    if resp ^. dmbrsResponseStatus == 200
+      then case resp ^. dmbrsFailed of
+          [] -> return $ Right ()
+          _  -> return $ Left DeleteMessageBatchError
+      else return $ Left DeleteMessageBatchError
+  pure $ sequence_ results
+
 
 -- | Reads from an SQS indefinitely, producing messages into a conduit
 queueSource :: MonadAWS m => QueueUrl -> ConduitT () Message m ()

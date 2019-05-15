@@ -39,6 +39,7 @@ library
     , monad-loops
     , mtl
     , network-uri
+    , split
     , text
     , unliftio-core
     , unordered-containers

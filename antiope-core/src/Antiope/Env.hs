@@ -1,5 +1,6 @@
 module Antiope.Env
   ( mkEnv
+  , mkEnv'
   , AWS.Env
   , AWS.HasEnv(..)
   , AWS.LogLevel(..)
@@ -15,7 +16,9 @@ import qualified Data.ByteString               as BS
 import qualified Data.ByteString.Char8         as C8
 import qualified Data.ByteString.Lazy          as L
 import qualified Data.ByteString.Lazy.Internal as LBS
+import qualified Data.Text                     as T
 import qualified Network.AWS                   as AWS
+import qualified Network.AWS.Auth              as AWS
 
 mkEnv :: Region -> (AWS.LogLevel -> LBS.ByteString -> IO ()) -> IO AWS.Env
 mkEnv region lg = do
@@ -25,11 +28,20 @@ mkEnv region lg = do
     <&> envRegion .~ region
     <&> envRetryCheck .~ retryPolicy 5
 
+mkEnv' :: T.Text -> Region -> (AWS.LogLevel -> LBS.ByteString -> IO ()) -> IO AWS.Env
+mkEnv' profile region lg = do
+  lgr <- newAwsLogger lg
+  cf <- AWS.credFile
+  newEnv (FromFile profile cf)
+    <&> envLogger .~ lgr
+    <&> envRegion .~ region
+    <&> envRetryCheck .~ retryPolicy 5
+
 newAwsLogger :: Monad m => (AWS.LogLevel -> LBS.ByteString -> IO ()) -> m AWS.Logger
 newAwsLogger lg = return $ \y b ->
   case toLazyByteString b of
     msg | BS.isInfixOf (C8.pack "404 Not Found") (L.toStrict msg) -> pure ()
-    msg -> lg y msg
+    msg                                                           -> lg y msg
 
 retryPolicy :: Int -> Int -> HttpException -> Bool
 retryPolicy maxNum attempt ex = (attempt <= maxNum) && shouldRetry ex

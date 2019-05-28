@@ -63,7 +63,7 @@ instance FromJSON S3Message where
 instance ToJSON S3Message where
   toJSON msg = Aeson.object
     [ "eventTime" .= eventTime msg
-    , "eventName" .= T.intercalate ":" ["s3", eventType (eventName msg), action (eventName msg)]
+    , "eventName" .= T.intercalate ":" [eventType (eventName msg), action (eventName msg)]
     , "s3"        .= Aeson.object
                       [ "bucket"    .= object [ "name" .= toText (bucket msg)]
                       , "object"    .= object

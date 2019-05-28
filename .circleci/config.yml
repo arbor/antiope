@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   haskell: haskell-works/haskell-build@2.0.3
-  hackage: haskell-works/hackage@1.1.0
+  hackage: haskell-works/hackage@1.2.0
 
 workflows:
   multiple-ghc-build:
@@ -13,7 +13,7 @@ workflows:
           context: haskell-ci
 
       - haskell/build:
-          name: GHC 8.6.4
+          name: GHC 8.6.5
           executor: haskell/ghc-8_6_5
           context: haskell-ci
 
@@ -21,9 +21,8 @@ workflows:
       #     name: GitHub Release
       #     context: haskell-ci
       #     requires:
-      #       - GHC 8.2.2
       #       - GHC 8.4.4
-      #       - GHC 8.6.4
+      #       - GHC 8.6.5
       #     checkout: true
       #     filters:
       #       branches:
@@ -35,7 +34,9 @@ workflows:
           filters:
             branches:
               only: master
-          # requires:
+          requires:
+            - GHC 8.4.4
+            - GHC 8.6.5
           #   - GitHub Release
 
 

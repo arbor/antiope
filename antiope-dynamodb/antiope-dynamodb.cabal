@@ -24,20 +24,24 @@ source-repository head
 library
   exposed-modules:
       Antiope.DynamoDB
+      Antiope.DynamoDB.Streams
       Antiope.DynamoDB.Types
   hs-source-dirs: src
   default-extensions: BangPatterns GeneralizedNewtypeDeriving OverloadedStrings TupleSections
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -msse4.2
   build-depends:
-      amazonka
-    , amazonka-core
-    , amazonka-dynamodb
+      amazonka >=1.6.1
+    , amazonka-core >=1.6.1
+    , amazonka-dynamodb >=1.6.1
+    , amazonka-dynamodb-streams >=1.6.1
     , antiope-core
+    , unagi-chan >= 0.4.1
     , base >=4.7 && <5
     , generic-lens
     , lens
+    , resourcet
     , text
-    , unliftio-core
+    , unliftio
     , unordered-containers
   default-language: Haskell2010
 
@@ -48,9 +52,10 @@ test-suite antiope-dynamodb-test
   default-extensions: BangPatterns GeneralizedNewtypeDeriving OverloadedStrings TupleSections
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -msse4.2 -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      amazonka
-    , amazonka-core
-    , amazonka-dynamodb
+      amazonka >=1.6.1
+    , amazonka-core >=1.6.1
+    , amazonka-dynamodb >=1.6.1
+    , amazonka-dynamodb-streams >=1.6.1
     , antiope-core
     , antiope-dynamodb
     , base >=4.7 && <5

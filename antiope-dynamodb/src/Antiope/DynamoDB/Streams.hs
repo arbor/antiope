@@ -125,6 +125,6 @@ rediscoverShardsAsync arn f =
       nowShards <- getShards arn <&> Set.fromList
       liftIO $ putStrLn $ "current shards: " <> show nowShards
       let stillOpen = Set.intersection knownShards nowShards
-      let newShards = Set.difference stillOpen nowShards
+      let newShards = Set.difference nowShards stillOpen
       f (Set.toList newShards)
-      go stillOpen
+      go nowShards

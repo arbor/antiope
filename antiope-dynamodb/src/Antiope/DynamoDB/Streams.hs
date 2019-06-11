@@ -106,8 +106,10 @@ runShardAsync limit shardIter handle =
 runStreamAsync :: (MonadAWS m, MonadUnliftIO m, MonadResource m) => Limit -> StreamArn -> ([Record] -> m ()) -> m ()
 runStreamAsync limit arn handler =
   rediscoverShardsAsync arn $ \ sids -> do
+    liftIO $ putStrLn $ "Discovered: " <> show sids
     iters <- forConcurrently sids (createShardIterator arn) <&> catMaybes
     forM_ iters (\s -> runShardAsync limit s handler)
+    liftIO $ putStrLn $ "Run new shards, sleep time."
     threadDelay (60 * 1000 * 1000)
 
 

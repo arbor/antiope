@@ -118,7 +118,9 @@ rediscoverShardsAsync arn f =
   forkIO (go Set.empty) >>= (void . register . killThread)
   where
     go knownShards = do
+      liftIO $ putStrLn $ "Reading shards... "
       nowShards <- getShards arn <&> Set.fromList
+      liftIO $ putStrLn $ "current shards: " <> show nowShards
       let stillOpen = Set.intersection knownShards nowShards
       let newShards = Set.difference stillOpen nowShards
       f (Set.toList newShards)

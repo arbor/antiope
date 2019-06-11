@@ -37,6 +37,7 @@ library
     , antiope-core
     , unagi-chan >= 0.4.1
     , base >=4.7 && <5
+    , containers
     , generic-lens
     , lens
     , resourcet

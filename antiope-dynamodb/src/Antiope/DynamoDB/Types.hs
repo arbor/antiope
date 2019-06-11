@@ -14,16 +14,16 @@ import Network.AWS.DynamoDBStreams           (Record)
 newtype StreamIterator = StreamIterator (OutChan Record) deriving Generic
 
 newtype TableName = TableName Text
-  deriving (Eq, Show, IsString, ToText, FromText, Generic)
+  deriving (Eq, Show, Ord, IsString, ToText, FromText, Generic)
 
 newtype StreamArn = StreamArn Text
-  deriving (Eq, Show, IsString, ToText, FromText, Generic)
+  deriving (Eq, Show, Ord, IsString, ToText, FromText, Generic)
 
 newtype ShardId = ShardId Text
-  deriving (Eq, Show, IsString, ToText, FromText, Generic)
+  deriving (Eq, Show, Ord, IsString, ToText, FromText, Generic)
 
 newtype ShardIterator = ShardIterator Text
   deriving (Eq, Show, IsString, ToText, FromText, Generic)
 
 newtype Limit = Limit Natural
-  deriving (Eq, Show, Generic)
+  deriving (Eq, Show, Ord, Generic)

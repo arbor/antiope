@@ -15,6 +15,7 @@ module Antiope.DynamoDB.Streams
 -- ** Async handlers
 , runStreamAsync
 , runShardAsync
+
 )
 where
 
@@ -30,8 +31,9 @@ import Network.AWS                           (MonadAWS)
 import Network.AWS.DynamoDBStreams
 import UnliftIO                              (MonadUnliftIO)
 import UnliftIO.Async                        (forConcurrently)
-import UnliftIO.Concurrent                   (forkIO, killThread)
+import UnliftIO.Concurrent                   (forkIO, killThread, threadDelay)
 
+import qualified Data.Set    as Set
 import qualified Network.AWS as AWS
 
 -- | Creates and runs a stream iterator.
@@ -80,15 +82,6 @@ fetchShardRecords (Limit limit) (ShardIterator it) = do
   let keys = resp ^. grrsRecords
   pure (nextIter, keys)
 
--- Handles records from the stream asynchronously with a handler function provided.
---
--- Runs several background workers, which are stopped when 'runResourceT' happens for
--- a given resource context.
-runStreamAsync :: (MonadAWS m, MonadUnliftIO m, MonadResource m) => Limit -> StreamArn -> ([Record] -> m ()) -> m ()
-runStreamAsync limit arn handler = do
-  sids   <- getShards arn
-  shards <- forConcurrently sids (createShardIterator arn) <&> catMaybes
-  forM_ shards (\s -> runShardAsync limit s handler)
 
 -- Handles records from the shard asynchronously with a handler function provided.
 --
@@ -104,3 +97,27 @@ runShardAsync limit shardIter handle =
       case mbIter of
         Nothing    -> pure ()
         Just iter' -> go iter'
+
+
+-- Handles records from the stream asynchronously with a handler function provided.
+--
+-- Runs several background workers, which are stopped when 'runResourceT' happens for
+-- a given resource context.
+runStreamAsync :: (MonadAWS m, MonadUnliftIO m, MonadResource m) => Limit -> StreamArn -> ([Record] -> m ()) -> m ()
+runStreamAsync limit arn handler =
+  rediscoverShardsAsync arn $ \ sids -> do
+    iters <- forConcurrently sids (createShardIterator arn) <&> catMaybes
+    forM_ iters (\s -> runShardAsync limit s handler)
+    threadDelay (60 * 1000 * 1000)
+
+
+rediscoverShardsAsync :: (MonadAWS m, MonadUnliftIO m, MonadResource m) => StreamArn -> ([ShardId] -> m ()) -> m ()
+rediscoverShardsAsync arn f =
+  forkIO (go Set.empty) >>= (void . register . killThread)
+  where
+    go knownShards = do
+      nowShards <- getShards arn <&> Set.fromList
+      let stillOpen = Set.intersection knownShards nowShards
+      let newShards = Set.difference stillOpen nowShards
+      f (Set.toList newShards)
+      go stillOpen

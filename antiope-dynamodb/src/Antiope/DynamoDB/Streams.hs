@@ -92,7 +92,9 @@ runShardAsync limit shardIter handle =
   forkIO (go shardIter) >>= (void . register . killThread)
   where
     go iter = do
+      liftIO $ putStrLn $ "Iterating..."
       (mbIter, batch) <- fetchShardRecords limit iter
+      liftIO $ putStrLn $ "Will handle: " <> show batch
       handle batch
       case mbIter of
         Nothing    -> pure ()
@@ -108,6 +110,7 @@ runStreamAsync limit arn handler =
   rediscoverShardsAsync arn $ \ sids -> do
     liftIO $ putStrLn $ "Discovered: " <> show sids
     iters <- forConcurrently sids (createShardIterator arn) <&> catMaybes
+    liftIO $ putStrLn $ "Found shards: " <> show (length iters)
     forM_ iters (\s -> runShardAsync limit s handler)
     liftIO $ putStrLn $ "Run new shards, sleep time."
     threadDelay (60 * 1000 * 1000)

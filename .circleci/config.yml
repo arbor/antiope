@@ -32,6 +32,7 @@ workflows:
 
       - hackage/upload:
           context: haskell-ci
+          publish: true
           requires:
             - GHC 8.4.4
             - GHC 8.6.5

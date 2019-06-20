@@ -3,7 +3,7 @@
 
 module Antiope.S3
 ( s3ObjectSource
-, putFile, putContent , putContent'
+, putFile, putFile', putContent , putContent'
 , copySingle
 , fromS3Uri
 , toS3Uri
@@ -71,8 +71,16 @@ putFile :: MonadAWS m
   -> FilePath         -- ^ Source file path
   -> m (Maybe ETag)   -- ^ Etag when the operation is successful
 putFile b k f = do
-    req <- chunkedFile chunkSize f
-    view porsETag <$> AWS.send (putObject b k req)
+  req <- chunkedFile chunkSize f
+  view porsETag <$> AWS.send (putObject b k req)
+
+putFile' :: MonadAWS m
+  => S3Uri            -- ^ S3 URI
+  -> FilePath         -- ^ Source file path
+  -> m (Maybe ETag)   -- ^ Etag when the operation is successful
+putFile' (S3Uri b k) f = do
+  req <- chunkedFile chunkSize f
+  view porsETag <$> AWS.send (putObject b k req)
 
 putContent :: MonadAWS m
   => BucketName

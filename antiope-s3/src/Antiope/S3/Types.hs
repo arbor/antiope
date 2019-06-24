@@ -24,7 +24,6 @@ import GHC.Generics
 import Network.AWS.Data
 import Network.AWS.S3            (BucketName (..), ObjectKey (..))
 import Network.URI               (unEscapeString)
-import Text.Read
 
 import qualified Data.Aeson                      as J
 import qualified Data.Aeson.Types                as J
@@ -56,9 +55,9 @@ instance ToJSON S3Uri where
 
 instance FromJSON S3Uri where
   parseJSON v = case v of
-    J.String s -> case readMaybe (T.unpack s) of
-      Just s3Uri -> return s3Uri
-      Nothing    -> J.typeMismatch "S3Uri" v
+    J.String s -> case fromText s of
+      Right s3Uri -> return s3Uri
+      Left msg    -> J.typeMismatch ("S3Uri (" <> msg <> ")") v
     _ -> J.typeMismatch "S3Uri" v
 
 data Range = Range

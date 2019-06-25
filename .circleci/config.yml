@@ -43,6 +43,7 @@ workflows:
           context: haskell-ci
           publish: true
           requires:
+            - GHC 8.2.2
             - GHC 8.4.4
             - GHC 8.6.5
           filters:

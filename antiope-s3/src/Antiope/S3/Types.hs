@@ -20,6 +20,7 @@ import Data.Aeson
 import Data.Char
 import Data.Generics.Product.Any
 import Data.List
+import Data.Semigroup            ((<>))
 import GHC.Generics
 import Network.AWS.Data
 import Network.AWS.S3            (BucketName (..), ObjectKey (..))

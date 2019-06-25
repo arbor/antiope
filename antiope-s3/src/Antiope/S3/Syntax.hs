@@ -8,6 +8,7 @@ module Antiope.S3.Syntax
 import Antiope.S3.Types
 import Control.Lens
 import Data.Generics.Product.Any
+import Data.Semigroup            ((<>))
 import Data.Text                 (Text)
 
 -- | Append text to an S3Uri

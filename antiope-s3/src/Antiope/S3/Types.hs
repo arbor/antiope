@@ -16,15 +16,17 @@ import Antiope.S3.Internal
 import Control.Applicative
 import Control.Lens
 import Control.Monad
+import Data.Aeson
 import Data.Char
 import Data.Generics.Product.Any
 import Data.List
-import Data.String               (fromString)
 import GHC.Generics
 import Network.AWS.Data
 import Network.AWS.S3            (BucketName (..), ObjectKey (..))
 import Network.URI               (unEscapeString)
 
+import qualified Data.Aeson                      as J
+import qualified Data.Aeson.Types                as J
 import qualified Data.Attoparsec.Combinator      as DAC
 import qualified Data.Attoparsec.Text            as DAT
 import qualified Data.Text                       as T
@@ -47,6 +49,16 @@ instance FromText S3Uri where
 
 instance ToText S3Uri where
   toText loc = toS3Uri (loc ^. the @"bucket") (loc ^. the @"objectKey")
+
+instance ToJSON S3Uri where
+  toJSON s3Uri = J.String (toText s3Uri)
+
+instance FromJSON S3Uri where
+  parseJSON v = case v of
+    J.String s -> case fromText s of
+      Right s3Uri -> return s3Uri
+      Left msg    -> J.typeMismatch ("S3Uri (" <> msg <> ")") v
+    _ -> J.typeMismatch "S3Uri" v
 
 data Range = Range
   { first :: Int

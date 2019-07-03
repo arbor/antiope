@@ -5,11 +5,15 @@ module Antiope.SQS
   , ConsumerMode(..)
   , ConsumerResult(..)
   , readQueue
+  , readQueue'
   , drainQueue
+  , drainQueue'
   , ackMessage
   , ackMessages
   , queueSource
   , forAllMessages
+  , forAllMessages'
+  , defaultReceiveMessage
 
   -- * Re-exports
   , Message
@@ -34,20 +38,38 @@ import Antiope.SQS.Types
 
 import qualified Network.AWS as AWS
 
+defaultReceiveMessage :: QueueUrl -> ReceiveMessage
+defaultReceiveMessage (QueueUrl url)
+  = receiveMessage url
+  & rmWaitTimeSeconds ?~ 10
+  & rmMaxNumberOfMessages ?~ 10
+
 -- | Reads the specified SQS queue once returning a bath of messages
 readQueue :: MonadAWS m
   => QueueUrl
   -> m [Message]
-readQueue (QueueUrl queueUrl) = do
+readQueue = readQueue' . defaultReceiveMessage
+
+-- | Reads the specified SQS queue once returning a bath of messages
+readQueue' :: MonadAWS m
+  => ReceiveMessage
+  -> m [Message]
+readQueue' recMsg = do
   -- max wait time allowed by aws is 20sec, max number messages to recieve is 10
-  resp <- AWS.send $ receiveMessage queueUrl & rmWaitTimeSeconds ?~ 10 & rmMaxNumberOfMessages ?~ 10
+  resp <- AWS.send recMsg
   return $ resp ^. rmrsMessages
 
 -- | Reads the specified SQS queue until it is empty and returns a list of messages
 drainQueue :: MonadAWS m
   => QueueUrl
   -> m [Message]
-drainQueue queueUrl = join <$> unfoldWhileM (not . null) (readQueue queueUrl)
+drainQueue = drainQueue' . defaultReceiveMessage
+
+-- | Reads the specified SQS queue until it is empty and returns a list of messages
+drainQueue' :: MonadAWS m
+  => ReceiveMessage
+  -> m [Message]
+drainQueue' recMsg = join <$> unfoldWhileM (not . null) (readQueue' recMsg)
 
 -- | Acknowledges a single SQS message
 ackMessage :: (MonadAWS m, HasReceiptHandle msg)
@@ -90,10 +112,18 @@ forAllMessages :: (MonadUnliftIO m, HasEnv env)
   -> ConsumerMode
   -> (Message -> m ConsumerResult)
   -> m ()
-forAllMessages env queue mode process = go
+forAllMessages env queue = forAllMessages' env (defaultReceiveMessage queue)
+
+forAllMessages' :: (MonadUnliftIO m, HasEnv env)
+  => env
+  -> ReceiveMessage
+  -> ConsumerMode
+  -> (Message -> m ConsumerResult)
+  -> m ()
+forAllMessages' env recMsg mode process = go
   where
     go = do
-      msgs <- runResourceT $ runAWS env (readQueue queue)
+      msgs <- runResourceT $ runAWS env (readQueue' recMsg)
       case (mode, msgs) of
         (Drain, []) -> pure ()
         _           -> processBatch msgs >> go
@@ -101,5 +131,5 @@ forAllMessages env queue mode process = go
       forM_ msgs $ \msg -> do
         res <- process msg
         case res of
-          Ack  -> void . runResourceT . runAWS env $ (ackMessage queue msg)
+          Ack  -> void . runResourceT . runAWS env $ ackMessage (QueueUrl $ recMsg ^. rmQueueURL) msg
           Nack -> pure ()

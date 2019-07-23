@@ -10,7 +10,7 @@ module Antiope.S3.Messages
 
 import Antiope.Messages
 import Antiope.S3            (BucketName (..), ETag (..), ObjectKey (..))
-import Control.Lens          (each, to, (^..), _Just)
+import Control.Lens          (coerced, each, (^.))
 import Data.Aeson            as Aeson
 import Data.Int              (Int64)
 import Data.Text             (Text)
@@ -23,15 +23,14 @@ import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Network.URI        as URI
 
+
 messageToS3Uri :: S3Message -> Types.S3Uri
 messageToS3Uri msg = Types.S3Uri (bucket msg) (key msg)
 
 fromSnsRecords :: Text -> [S3Message]
 fromSnsRecords msg =
   Aeson.decodeStrict' @(WithEncoded "Message" (With "Records" [S3Message])) (T.encodeUtf8 msg)
-    ^.. _Just
-    . to fromWith2
-    . each
+    ^. each . coerced
 
 data EventName = EventName
   { eventType :: !Text

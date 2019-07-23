@@ -9,7 +9,7 @@ module Antiope.Messages.Types
 ( WithEncoded(..)
 , With(..)
 , FromWith(..)
-, fromWith2, fromWith3
+, fromWith2, fromWith3, fromWith4, fromWith5, fromWith6
 ) where
 
 import Data.Aeson   (FromJSON (..), ToJSON (..), eitherDecodeStrict, encode, withObject, (.:), (.=))
@@ -19,19 +19,22 @@ import GHC.TypeLits
 import qualified Data.Aeson           as Aeson
 import qualified Data.Aeson.Types     as Aeson
 import qualified Data.ByteString.Lazy as LBS
+import           Data.Coerce          (Coercible, coerce)
 import           Data.Proxy
 import qualified Data.Text            as Text
 import qualified Data.Text.Encoding   as Text
 
 -- | Extracts value from 'With' and 'WithEncoded' wrappers
+--
+-- Will probably be deprecated soon, try using 'Data.Coerce.coerce' instead.
 class FromWith f where
   fromWith :: f a -> a -- ^ Extracts value from 'With' and 'WithEncoded'
 
 instance FromWith (With x) where
-  fromWith (With a) = a
+  fromWith = coerce
 
 instance FromWith (WithEncoded x) where
-  fromWith (WithEncoded a) = a
+  fromWith = coerce
 
 -- | Extracts a value from any combination of two 'With' and/or 'WithEncoded'
 --
@@ -51,31 +54,23 @@ fromWith3 :: (FromWith f, FromWith g, FromWith h) => f (g (h a)) -> a
 fromWith3 = fromWith . fromWith . fromWith
 {-# INLINE fromWith3 #-}
 
+fromWith4 :: (FromWith f, FromWith g, FromWith h, FromWith k) => f (g (h (k a))) -> a
+fromWith4 = fromWith . fromWith . fromWith . fromWith
+{-# INLINE fromWith4 #-}
+
+fromWith5 :: (FromWith f, FromWith g, FromWith h, FromWith k, FromWith p) => f (g (h (k (p a)))) -> a
+fromWith5 = fromWith . fromWith . fromWith . fromWith . fromWith
+{-# INLINE fromWith5 #-}
+
+fromWith6 :: (FromWith f, FromWith g, FromWith h, FromWith k, FromWith p, FromWith q) => f (g (h (k (p (q a))))) -> a
+fromWith6 = fromWith . fromWith . fromWith . fromWith . fromWith . fromWith
+{-# INLINE fromWith6 #-}
+
 -- | Represents a JSON value of type 'a' that is encoded as a string in a field 'fld'
-data WithEncoded (fld :: Symbol) a where
-  WithEncoded :: forall fld a. KnownSymbol fld => a -> WithEncoded fld a
+newtype WithEncoded (fld :: Symbol) a = WithEncoded a deriving (Show, Eq, Ord)
 
 -- | Represents a JSON value of type 'a' in a field 'fld'
-data With (fld :: Symbol) a where
-  With :: forall fld a. KnownSymbol fld => a -> With fld a
-
-instance Show a => Show (WithEncoded fld a) where
-  show (WithEncoded a) = show a
-
-instance Show a => Show (With fld a) where
-  show (With a) = show a
-
-instance Eq a => Eq (WithEncoded fld a) where
-  (WithEncoded a) == (WithEncoded b) = a == b
-
-instance Eq a => Eq (With fld a) where
-  (With a) == (With b) = a == b
-
-instance Ord a => Ord (WithEncoded fld a) where
-  compare (WithEncoded a) (WithEncoded b) = compare a b
-
-instance Ord a => Ord (With fld a) where
-  compare (With a) (With b) = compare a b
+newtype With (fld :: Symbol) a = With a deriving (Show, Eq, Ord)
 
 instance (KnownSymbol fld, FromJSON a) => FromJSON (WithEncoded fld a) where
   parseJSON =

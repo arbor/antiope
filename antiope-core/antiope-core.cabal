@@ -1,7 +1,7 @@
 cabal-version: 2.2
 
 name:               antiope-core
-version:            7.2.1
+version:            7.2.2
 description:        Please see the README on Github at <https://github.com/arbor/antiope#readme>.
 synopsis:           Please see the README on Github at <https://github.com/arbor/antiope#readme>
 category:           Services

@@ -1,9 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Antiope.SWF.HistoryEvent
   ( historyEventToText
   ) where
 
 import Control.Applicative
 import Control.Lens
+import Data.Monoid         ((<>))
 import Data.Text           (Text)
 
 import qualified Data.Text             as T

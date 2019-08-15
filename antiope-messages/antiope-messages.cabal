@@ -25,6 +25,7 @@ library
   exposed-modules:
       Antiope.Messages
       Antiope.Messages.Types
+      Antiope.Messages.Via
   hs-source-dirs: src
   default-extensions: BangPatterns GeneralizedNewtypeDeriving OverloadedStrings TupleSections
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -msse4.2

@@ -5,22 +5,23 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
+
 module Antiope.Messages.Types
-( WithEncoded(..)
-, With(..)
-, FromWith(..)
-, fromWith2, fromWith3, fromWith4, fromWith5, fromWith6
-) where
+  ( WithEncoded(..)
+  , With(..)
+  , FromWith(..)
+  , fromWith2, fromWith3, fromWith4, fromWith5, fromWith6
+  ) where
 
 import Data.Aeson   (FromJSON (..), ToJSON (..), eitherDecodeStrict, encode, withObject, (.:), (.=))
+import Data.Coerce  (coerce)
+import Data.Proxy
 import Data.Text    (Text)
 import GHC.TypeLits
 
 import qualified Data.Aeson           as Aeson
 import qualified Data.Aeson.Types     as Aeson
 import qualified Data.ByteString.Lazy as LBS
-import           Data.Coerce          (Coercible, coerce)
-import           Data.Proxy
 import qualified Data.Text            as Text
 import qualified Data.Text.Encoding   as Text
 

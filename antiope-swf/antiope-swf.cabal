@@ -1,7 +1,7 @@
 cabal-version: 2.2
 
 name:               antiope-swf
-version:            7.2.2
+version:            7.3.0
 synopsis:           Please see the README on Github at <https://github.com/arbor/antiope#readme>
 description:        Please see the README on Github at <https://github.com/arbor/antiope#readme>.
 category:           Services

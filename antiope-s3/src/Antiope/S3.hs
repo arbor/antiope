@@ -9,6 +9,7 @@ module Antiope.S3
 , toS3Uri
 , lsBucketResponseStream
 , lsBucketStream
+, lsObjects
 , lsPrefix
 , deleteFiles
 , deleteFilesExcept
@@ -28,7 +29,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
-import Data.Conduit.List            (unfoldM)
+import Data.Conduit.List            (consume, unfoldM)
 import Data.Maybe                   (catMaybes, isJust)
 import Data.Monoid                  ((<>))
 import Data.Text                    as T (Text, pack, unpack)
@@ -38,10 +39,11 @@ import Network.AWS.Data.Text        (toText)
 import Network.AWS.S3
 import Network.URI                  (URI (..), URIAuth (..), parseURI, unEscapeString)
 
-import qualified Data.ByteString      as BS
-import qualified Data.ByteString.Lazy as LBS
-import qualified Data.List            as List
-import qualified Network.AWS          as AWS
+import qualified Data.ByteString          as BS
+import qualified Data.ByteString.Lazy     as LBS
+import qualified Data.Conduit.Combinators as CC
+import qualified Data.List                as List
+import qualified Network.AWS              as AWS
 
 chunkSize :: ChunkSize
 chunkSize = ChunkSize (1024 * 1024)
@@ -141,7 +143,7 @@ lsBucketStream :: MonadAWS m
   -> ConduitM a Object m ()
 lsBucketStream bar = lsBucketResponseStream bar .| concatMapC (^. lovrsContents)
 
--- | Lists the specified prefix in a bucket.
+-- | Lists the specified prefix in a bucket, recursively.
 lsPrefix :: MonadAWS m
   => BucketName
   -> Prefix
@@ -151,6 +153,21 @@ lsPrefix b p =
     lsBucketStream (listObjectsV2 b & lovPrefix ?~ p)
     .| mapC (S3Uri b . view oKey)
     .| sinkList
+
+-- | Lists the specified objects in a bucket, non-recursively.
+lsObjects :: MonadAWS m
+  => BucketName
+  -> ObjectKey
+  -> m [ObjectKey]
+lsObjects bkt dir =
+  let req = listObjectsV2 bkt & lovPrefix ?~ toText dir & lovDelimiter ?~ ('/' :: Delimiter)
+  in runConduit $ lsBucketResponseStream req .| CC.concatMap lsResponseToObjectsList .| consume
+  where
+    lsResponseToObjectsList rs = keys <> prefixes
+      where
+        keys = rs ^. lovrsContents <&> (^. oKey)
+        maybePrefixes = rs ^. lovrsCommonPrefixes <&> (^. cpPrefix)
+        prefixes = ObjectKey <$> catMaybes maybePrefixes
 
 -- | Deletes specified keys in a bucket.
 -- Returns a list of keys that were successfully deleted.

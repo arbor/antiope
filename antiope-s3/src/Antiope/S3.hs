@@ -9,7 +9,7 @@ module Antiope.S3
 , toS3Uri
 , lsBucketResponseStream
 , lsBucketStream
-, lsObjects
+, lsEntries
 , lsPrefix
 , deleteFiles
 , deleteFilesExcept
@@ -155,11 +155,11 @@ lsPrefix b p =
     .| sinkList
 
 -- | Lists the specified objects in a bucket, non-recursively.
-lsObjects :: MonadAWS m
+lsEntries :: MonadAWS m
   => BucketName
   -> ObjectKey
   -> m [ObjectKey]
-lsObjects bkt dir =
+lsEntries bkt dir =
   let req = listObjectsV2 bkt & lovPrefix ?~ toText dir & lovDelimiter ?~ ('/' :: Delimiter)
   in runConduit $ lsBucketResponseStream req .| CC.concatMap lsResponseToObjectsList .| consume
   where

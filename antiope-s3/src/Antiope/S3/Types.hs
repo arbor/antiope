@@ -9,6 +9,7 @@ module Antiope.S3.Types
   , S3Uri(..)
   , readBucketName
   , readWhile
+  , dirname
   , Range(..)
   ) where
 
@@ -96,3 +97,7 @@ instance Read S3Uri where
     bn <- readBucketName
     ok <- ObjectKey . T.pack . unEscapeString . drop 1 <$> readWhile (/= ' ')
     return (S3Uri bn ok)
+
+dirname :: S3Uri -> S3Uri
+dirname (S3Uri bucket (ObjectKey key)) = S3Uri bucket (ObjectKey newKey)
+  where newKey = T.intercalate "/" (reverse (drop 1 (dropWhile T.null (reverse (T.splitOn "/" key)))))

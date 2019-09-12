@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -17,6 +18,7 @@ import Data.Aeson   (FromJSON (..), ToJSON (..), eitherDecodeStrict, encode, wit
 import Data.Coerce  (coerce)
 import Data.Proxy
 import Data.Text    (Text)
+import GHC.Generics
 import GHC.TypeLits
 
 import qualified Data.Aeson           as Aeson
@@ -68,10 +70,10 @@ fromWith6 = fromWith . fromWith . fromWith . fromWith . fromWith . fromWith
 {-# INLINE fromWith6 #-}
 
 -- | Represents a JSON value of type 'a' that is encoded as a string in a field 'fld'
-newtype WithEncoded (fld :: Symbol) a = WithEncoded a deriving (Show, Eq, Ord)
+newtype WithEncoded (fld :: Symbol) a = WithEncoded a deriving (Show, Eq, Ord, Generic)
 
 -- | Represents a JSON value of type 'a' in a field 'fld'
-newtype With (fld :: Symbol) a = With a deriving (Show, Eq, Ord)
+newtype With (fld :: Symbol) a = With a deriving (Show, Eq, Ord, Generic)
 
 instance (KnownSymbol fld, FromJSON a) => FromJSON (WithEncoded fld a) where
   parseJSON =

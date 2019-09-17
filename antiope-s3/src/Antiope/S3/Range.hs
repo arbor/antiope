@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Antiope.S3.Range
   ( Range(..)
   , rangeHeaderText

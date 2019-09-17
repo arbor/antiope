@@ -34,7 +34,7 @@ library
   build-depends:        amazonka              >= 1.6.1
                       , amazonka-core         >= 1.6.1
                       , amazonka-s3           >= 1.6.1
-                      , optparse-applicative  >= 0.14.3.0     && < 0.15
+                      , optparse-applicative  >= 0.14.3.0     && < 0.16
                       , text
 
 test-suite antiope-optparse-applicative-test

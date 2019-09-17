@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Antiope.S3.Internal where
 
 import Data.Monoid    ((<>))

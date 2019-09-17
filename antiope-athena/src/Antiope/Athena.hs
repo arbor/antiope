@@ -1,3 +1,7 @@
+{-# LANGUAGE OverloadedStrings #-}
+
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+
 module Antiope.Athena
   ( query
   , queryExecutionSucceed

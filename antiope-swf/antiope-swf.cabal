@@ -30,7 +30,7 @@ library
   import:               base, config
   exposed-modules:      Antiope.SWF.HistoryEvent
   hs-source-dirs:       src
-  build-depends:        amazonka-swf          >= 1.6.1
+  build-depends:        amazonka-swf          >= 1.6.0
                       , lens
                       , text
 

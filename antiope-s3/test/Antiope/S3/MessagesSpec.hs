@@ -1,21 +1,19 @@
-module Antiope.S3.MessagesSpec
-where
+module Antiope.S3.MessagesSpec where
 
-import Antiope.S3          (BucketName (..), ETag (..), ObjectKey (..))
+import Antiope.S3                  (BucketName (..), ETag (..), ObjectKey (..))
 import Antiope.S3.Messages
-import Data.Aeson          (decode, encode)
-import Data.Monoid         ((<>))
-import Data.Text           (Text, pack)
+import Data.Aeson                  (decode, encode)
+import Data.Monoid                 ((<>))
+import Data.Text                   (Text, pack)
 import Data.Time.Calendar
 import Data.Time.Clock
-
-import qualified Data.Text as Text
-
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
-import Hedgehog.Gen                as Gen
-import Hedgehog.Range              as Range
 import Test.Hspec
+
+import qualified Data.Text      as Text
+import qualified Hedgehog.Gen   as Gen
+import qualified Hedgehog.Range as Range
 
 {-# ANN module ("HLint: Ignore Redundant do" :: String) #-}
 
@@ -66,3 +64,5 @@ spec = describe "Antiope.S3.MessagesSpec" $ do
   it "Can encode and decode S3Message" $ require $ property $ do
     msg <- forAll $ s3Message
     tripping msg encode decode
+
+

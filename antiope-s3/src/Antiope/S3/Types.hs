@@ -4,9 +4,9 @@
 {-# LANGUAGE TypeApplications  #-}
 
 module Antiope.S3.Types
-  ( X.BucketName(..)
-  , X.ObjectKey(..)
-  , X.ETag(..)
+  ( S3.BucketName(..)
+  , S3.ObjectKey(..)
+  , S3.ETag(..)
   , S3Uri(..)
   , readBucketName
   , readWhile
@@ -14,7 +14,6 @@ module Antiope.S3.Types
   , Range(..)
   ) where
 
-import Antiope.S3.Internal
 import Control.Applicative
 import Control.Lens
 import Control.Monad
@@ -25,15 +24,16 @@ import Data.List
 import Data.Semigroup            ((<>))
 import GHC.Generics
 import Network.AWS.Data
-import Network.AWS.S3            (BucketName (..), ObjectKey (..))
+import Network.AWS.S3            (BucketName (BucketName), ObjectKey (ObjectKey))
 import Network.URI               (unEscapeString)
 
+import qualified Antiope.S3.Internal             as S3
 import qualified Data.Aeson                      as J
 import qualified Data.Aeson.Types                as J
 import qualified Data.Attoparsec.Combinator      as DAC
 import qualified Data.Attoparsec.Text            as DAT
 import qualified Data.Text                       as T
-import qualified Network.AWS.S3.Types            as X
+import qualified Network.AWS.S3.Types            as S3
 import qualified Text.ParserCombinators.ReadPrec as RP
 
 data S3Uri = S3Uri
@@ -51,7 +51,7 @@ instance FromText S3Uri where
     return (S3Uri bn ok)
 
 instance ToText S3Uri where
-  toText loc = toS3Uri (loc ^. the @"bucket") (loc ^. the @"objectKey")
+  toText loc = S3.toS3Uri (loc ^. the @"bucket") (loc ^. the @"objectKey")
 
 instance ToJSON S3Uri where
   toJSON s3Uri = J.String (toText s3Uri)
@@ -100,5 +100,5 @@ instance Read S3Uri where
     return (S3Uri bn ok)
 
 dirname :: S3Uri -> S3Uri
-dirname (S3Uri bucket (ObjectKey key)) = S3Uri bucket (ObjectKey newKey)
+dirname (S3Uri bk (ObjectKey key)) = S3Uri bk (ObjectKey newKey)
   where newKey = T.intercalate "/" (reverse (drop 1 (dropWhile T.null (reverse (T.splitOn "/" key)))))

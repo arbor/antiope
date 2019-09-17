@@ -100,5 +100,5 @@ instance Read S3Uri where
     return (S3Uri bn ok)
 
 dirname :: S3Uri -> S3Uri
-dirname (S3Uri bucket (ObjectKey key)) = S3Uri bucket (ObjectKey newKey)
+dirname (S3Uri bk (ObjectKey key)) = S3Uri bk (ObjectKey newKey)
   where newKey = T.intercalate "/" (reverse (drop 1 (dropWhile T.null (reverse (T.splitOn "/" key)))))

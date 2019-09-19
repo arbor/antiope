@@ -14,7 +14,7 @@ workflows:
           executor: haskell/ghc-8_2_2
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-          build-components: amazonka-core amazonka-s3 amazonka-swf all
+          build-components: all
           build-components-separately: true
 
       - haskell/build-with-binary-cache:
@@ -22,7 +22,7 @@ workflows:
           executor: haskell/ghc-8_4_4
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-          build-components: amazonka-core amazonka-s3 amazonka-swf all
+          build-components: all
           build-components-separately: true
 
       - haskell/build-with-binary-cache:
@@ -30,7 +30,7 @@ workflows:
           executor: haskell/ghc-8_6_5
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-          build-components: amazonka-s3 amazonka-swf all
+          build-components: all
           build-components-separately: true
 
       - github/release-cabal:

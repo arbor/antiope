@@ -24,15 +24,13 @@ import qualified Data.Text.Encoding   as T
 import qualified System.Exit          as IO
 import qualified System.Process       as IO
 
-data PutObjectReply = PutObjectReply
-  { versionId :: Text
-  , eTag      :: Text
+newtype PutObjectReply = PutObjectReply
+  { eTag      :: Text
   } deriving (Eq, Show, Generic)
 
 instance J.FromJSON PutObjectReply where
   parseJSON = J.withObject "PutObjectReply" $ \v -> PutObjectReply
-        <$> v .: "VersionId"
-        <*> v .: "ETag"
+    <$> v .: "ETag"
 
 -- | Puts file into a specified S3 bucket
 putFile :: MonadIO m

@@ -54,9 +54,10 @@ putFile s3Uri filePath = do
 
   case exitCode of
     IO.ExitSuccess   -> do
-      let bs = LBS.fromStrict (T.encodeUtf8 (T.pack stdout))
+      let stdoutText = T.pack stdout
+      let bs = LBS.fromStrict (T.encodeUtf8 stdoutText)
       let repResult = J.eitherDecode bs :: Either String PutObjectReply
       case repResult of
         Right rep -> return (ETag (T.encodeUtf8 (rep ^. the @"eTag")))
-        Left msg  -> throwError $ "Command failed to return expected metadata: " <> T.pack msg
+        Left msg  -> throwError $ "Command failed to return expected metadata: " <> T.pack msg <> " given stdout: " <> stdoutText
     IO.ExitFailure n -> throwError $ "Command failed with exit code: " <> T.pack (show n)

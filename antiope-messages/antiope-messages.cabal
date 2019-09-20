@@ -1,7 +1,7 @@
 cabal-version: 2.4
 
 name:                   antiope-messages
-version:                7.4.0
+version:                7.4.1
 synopsis:               Please see the README on Github at <https://github.com/arbor/antiope#readme>
 description:            Please see the README on Github at <https://github.com/arbor/antiope#readme>.
 category:               Services

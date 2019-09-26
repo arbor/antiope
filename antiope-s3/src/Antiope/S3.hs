@@ -109,24 +109,6 @@ copySingle sb sk tb tk = void . AWS.send $ copyObject tb (toText sb <> "/" <> to
 
 -- Private --
 
--- Builds the request for the next page of a NextObjectsV2 request,
--- based on the original request and the most recent response.
-nextPageReq :: ListObjectsV2 -> ListObjectsV2Response -> ListObjectsV2
-nextPageReq initial resp =
-  initial & lovContinuationToken .~ resp ^. lovrsNextContinuationToken
-
--- The type signature is like this so that it can be used with `unfoldM`
-lsBucketPage :: MonadAWS m
-  => Maybe ListObjectsV2
-  -> m (Maybe (ListObjectsV2Response, Maybe ListObjectsV2))
-lsBucketPage Nothing    = pure Nothing
-lsBucketPage (Just req) = do
-  resp <- AWS.send req
-  pure . Just . (resp, ) $
-    case resp ^. lovrsIsTruncated of
-      Just True -> Just $ nextPageReq req resp
-      _         -> Nothing
-
 -- | Streams all pages of the result (ListObjectsV2Responses) of a ListObjectsV2
 -- request from S3.
 -- lsBucketResponseStream :: MonadAWS m => ListObjectsV2 -> ConduitT i ListObjectsV2Response m ()

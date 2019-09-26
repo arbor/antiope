@@ -1,13 +1,9 @@
 module Antiope.SQS.MessagesSpec
-where
-
-import Antiope.SQS.Messages
-import Data.Aeson
+  ( spec
+  ) where
 
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
-import Hedgehog.Gen                as Gen
-import Hedgehog.Range              as Range
 import Test.Hspec
 
 {-# ANN module ("HLint: Ignore Redundant do" :: String) #-}

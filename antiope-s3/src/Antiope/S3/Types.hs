@@ -12,6 +12,7 @@ module Antiope.S3.Types
   , readWhile
   , dirname
   , Range(..)
+  , s3UriToListObjectsV2
   ) where
 
 import Antiope.S3.Internal
@@ -33,6 +34,7 @@ import qualified Data.Aeson.Types                as J
 import qualified Data.Attoparsec.Combinator      as DAC
 import qualified Data.Attoparsec.Text            as DAT
 import qualified Data.Text                       as T
+import qualified Network.AWS.S3                  as AWS
 import qualified Network.AWS.S3.Types            as X
 import qualified Text.ParserCombinators.ReadPrec as RP
 
@@ -102,3 +104,7 @@ instance Read S3Uri where
 dirname :: S3Uri -> S3Uri
 dirname (S3Uri bk (ObjectKey key)) = S3Uri bk (ObjectKey newKey)
   where newKey = T.intercalate "/" (reverse (drop 1 (dropWhile T.null (reverse (T.splitOn "/" key)))))
+
+s3UriToListObjectsV2 :: S3Uri -> AWS.ListObjectsV2
+s3UriToListObjectsV2 s3Uri = AWS.listObjectsV2 (s3Uri ^. the @"bucket")
+  & AWS.lovPrefix ?~ (s3Uri ^. the @"objectKey" . the @1)

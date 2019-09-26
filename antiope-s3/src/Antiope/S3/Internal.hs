@@ -7,7 +7,6 @@ import Control.Lens
 import Data.Monoid    ((<>))
 import Data.Text      (Text)
 import Network.AWS    (MonadAWS)
-import Network.AWS.S3 (BucketName (..), ObjectKey (..))
 import Network.AWS.S3
 
 import qualified Network.AWS as AWS

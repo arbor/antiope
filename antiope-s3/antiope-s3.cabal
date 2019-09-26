@@ -54,6 +54,7 @@ library
                       , exceptions
                       , generic-lens
                       , http-types
+                      , dlist                 >= 0.8.0.7
                       , lens
                       , mtl
                       , network-uri

@@ -1,22 +1,19 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
 module Antiope.Messages.MessagesSpec
-where
+  ( spec
+  ) where
 
 import Antiope.Messages
-import Data.Aeson       (decode, encode, (.=))
-import Data.Monoid      ((<>))
-import Data.Scientific  (fromFloatDigits)
-import Data.Text        (Text, pack)
-
-import qualified Data.Aeson as Aeson
-import qualified Data.Text  as Text
-
+import Data.Aeson                  (decode, encode, (.=))
+import Data.Scientific             (fromFloatDigits)
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Hedgehog.Gen                as Gen
 import Hedgehog.Range              as Range
 import Test.Hspec
+
+import qualified Data.Aeson as Aeson
 
 {-# ANN module ("HLint: Ignore Redundant do" :: String) #-}
 
@@ -32,7 +29,6 @@ jsonObject = do
     jsonNumber  = (Aeson.Number . fromFloatDigits) <$> Gen.double (Range.linearFrac (-32000.0) 32000.0)
     jsonBool    = Aeson.Bool <$> Gen.bool
     jsonNull    = pure Aeson.Null
-
 
 spec :: Spec
 spec = describe "Antiope.Core.MessagesSpec" $ do

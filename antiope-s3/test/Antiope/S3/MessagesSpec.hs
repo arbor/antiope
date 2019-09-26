@@ -64,5 +64,3 @@ spec = describe "Antiope.S3.MessagesSpec" $ do
   it "Can encode and decode S3Message" $ require $ property $ do
     msg <- forAll $ s3Message
     tripping msg encode decode
-
-

@@ -10,8 +10,8 @@ module Antiope.S3.Lazy
   , downloadFromS3Uri
   , listObjectsV2
   , listS3Uris
-  , listObjectsV2DList
-  , listS3UrisDList
+  , dlistObjectsV2
+  , dlistS3Uris
   , s3UriToListObjectsV2
   ) where
 
@@ -59,22 +59,22 @@ downloadFromS3Uri :: (MonadAWS m, MonadResource m)
   -> m (Maybe LBS.ByteString)
 downloadFromS3Uri (S3Uri b k) = download b k
 
-listObjectsV2DList :: (MonadAWS m, MonadResource m, MonadUnliftIO m)
+dlistObjectsV2 :: (MonadAWS m, MonadResource m, MonadUnliftIO m)
   => AWS.ListObjectsV2
   -> m (DL.DList AWS.ListObjectsV2Response)
-listObjectsV2DList req = do
+dlistObjectsV2 req = do
   f <- askUnliftIO
   r <- AWS.send req
   case r ^. AWS.lovrsIsTruncated of
     Just True -> do
-      rs <- liftIO $ IO.unsafeInterleaveIO (unliftIO f (listObjectsV2DList (I.nextPageReq req r)))
+      rs <- liftIO $ IO.unsafeInterleaveIO (unliftIO f (dlistObjectsV2 (I.nextPageReq req r)))
       return (DL.cons r rs)
     _ -> return (DL.singleton r)
 
-listS3UrisDList :: (MonadAWS m, MonadResource m, MonadUnliftIO m)
+dlistS3Uris :: (MonadAWS m, MonadResource m, MonadUnliftIO m)
   => AWS.ListObjectsV2
   -> m (DL.DList S3Uri)
-listS3UrisDList req = listObjectsV2DList req >>= toS3Uris
+dlistS3Uris req = dlistObjectsV2 req >>= toS3Uris
   where toS3Uris responses  = return (responses >>= toS3Uris')
         toS3Uris' response  = do
           c <- response ^. AWS.lovrsContents & DL.fromList
@@ -83,9 +83,9 @@ listS3UrisDList req = listObjectsV2DList req >>= toS3Uris
 listObjectsV2 :: (MonadAWS m, MonadResource m, MonadUnliftIO m)
   => AWS.ListObjectsV2
   -> m [AWS.ListObjectsV2Response]
-listObjectsV2 req = DL.toList <$> listObjectsV2DList req
+listObjectsV2 req = DL.toList <$> dlistObjectsV2 req
 
 listS3Uris :: (MonadAWS m, MonadResource m, MonadUnliftIO m)
   => AWS.ListObjectsV2
   -> m [S3Uri]
-listS3Uris req = DL.toList <$> listS3UrisDList req
+listS3Uris req = DL.toList <$> dlistS3Uris req

@@ -65,7 +65,7 @@ test-suite antiope-core-test
                       , exceptions
                       , generic-lens
                       , hedgehog              >= 0.5          && < 1.1
-                      , hspec                 >= 2.4          && < 2.7
+                      , hspec                 >= 2.4          && < 2.8
                       , http-client
                       , http-types
                       , hw-hspec-hedgehog     >= 0.1          && < 0.3

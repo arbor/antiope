@@ -50,5 +50,5 @@ test-suite antiope-optparse-applicative-test
                       , amazonka-core         >= 1.6.0
                       , amazonka-s3           >= 1.6.0
                       , hedgehog              >= 0.5          && < 1.1
-                      , hspec                 >= 2.4          && < 2.7
+                      , hspec                 >= 2.4          && < 2.8
                       , hw-hspec-hedgehog     >= 0.1          && < 0.3

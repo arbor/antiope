@@ -27,6 +27,7 @@ import Antiope.S3.Types             (S3Uri (S3Uri, objectKey))
 import Conduit
 import Control.Lens
 import Control.Monad
+import Control.Monad.Except
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
 import Data.Conduit.List            (consume, unfoldM)
@@ -163,7 +164,7 @@ deleteFiles b ks = do
   let dObjs = delete' & dObjects .~ (objectIdentifier <$> ks)
   resp <- AWS.send (deleteObjects b dObjs)
   unless (List.null $ resp ^. drsErrors) $
-    fail (resp ^. drsErrors & show)
+    error (resp ^. drsErrors & show)
   let deleted = resp ^.. drsDeleted . each . dKey & catMaybes <&> S3Uri b
   pure deleted
 

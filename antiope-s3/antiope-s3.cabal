@@ -12,6 +12,7 @@ maintainer:             mayhem@arbor.net
 copyright:              Arbor Networks
 license:                MIT
 license-file:           LICENSE
+tested-with:            GHC == 8.8.1, GHC == 8.6.5, GHC == 8.4.4, GHC == 8.2.2
 build-type:             Simple
 extra-source-files:     README.md
                         ChangeLog.md
@@ -87,7 +88,7 @@ test-suite antiope-s3-test
                       , exceptions
                       , generic-lens
                       , hedgehog              >= 0.5      && < 1.1
-                      , hspec                 >= 2.4      && < 2.7
+                      , hspec                 >= 2.4      && < 2.8
                       , http-types
                       , hw-hspec-hedgehog     >= 0.1      && < 0.3
                       , lens

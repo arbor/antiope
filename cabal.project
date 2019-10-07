@@ -1,1 +1,7 @@
 packages: ./*/*.cabal
+
+package amazonka-swf
+  ghc-options: +RTS -M2G -RTS
+
+package amazonka-s3
+  ghc-options: +RTS -M2G -RTS

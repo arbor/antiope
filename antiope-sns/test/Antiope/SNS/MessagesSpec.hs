@@ -1,11 +1,9 @@
-module Antiope.SNS.MessagesSpec
-where
+module Antiope.SNS.MessagesSpec where
 
 import Antiope.SNS.Messages
 import Data.Aeson
 import Data.Time.Calendar
 import Data.Time.Clock
-
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Hedgehog.Gen                as Gen
@@ -45,5 +43,5 @@ genUTCTime = do
   d <- Gen.int (Range.constant 1 28)
   let day = fromGregorian y m d
   secs <- toInteger <$> Gen.int (Range.constant 0 86401)
-  let diff = secondsToDiffTime secs
-  pure $ UTCTime day diff
+  let diffTime = secondsToDiffTime secs
+  pure $ UTCTime day diffTime

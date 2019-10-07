@@ -14,7 +14,6 @@ workflows:
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
           build-components: all
-          cabal-threads: 4
 
       - haskell/build-with-binary-cache:
           name: GHC 8.6.5
@@ -22,7 +21,6 @@ workflows:
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
           build-components: all
-          cabal-threads: 4
 
       - haskell/build-with-binary-cache:
           name: GHC 8.8.1
@@ -30,7 +28,6 @@ workflows:
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
           build-components: all
-          cabal-threads: 4
 
       - github/release-cabal:
           name: GitHub Release

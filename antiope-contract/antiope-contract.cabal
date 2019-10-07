@@ -11,6 +11,7 @@ maintainer:             mayhem@arbor.net
 copyright:              Arbor Networks
 license:                MIT
 license-file:           LICENSE
+tested-with:            GHC == 8.8.1, GHC == 8.6.5, GHC == 8.4.4
 build-type:             Simple
 extra-source-files:     contract/file_change_message.avsc
                         contract/resource_changed.avsc

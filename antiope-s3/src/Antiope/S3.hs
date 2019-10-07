@@ -27,7 +27,6 @@ import Antiope.S3.Types             (S3Uri (S3Uri, objectKey))
 import Conduit
 import Control.Lens
 import Control.Monad
-import Control.Monad.Except
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
 import Data.Conduit.List            (consume, unfoldM)

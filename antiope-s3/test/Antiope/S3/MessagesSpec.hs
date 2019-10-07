@@ -24,8 +24,8 @@ genUTCTime = do
     d <- Gen.int (Range.constant 1 28)
     let day = fromGregorian y m d
     secs <- toInteger <$> Gen.int (Range.constant 0 86401)
-    let diff = secondsToDiffTime secs
-    pure $ UTCTime day diff
+    let diffTime = secondsToDiffTime secs
+    pure $ UTCTime day diffTime
 
 datedPath :: MonadGen m => m Text
 datedPath = do

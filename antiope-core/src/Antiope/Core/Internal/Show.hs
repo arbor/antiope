@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+
 module Antiope.Core.Internal.Show
   ( tshowNum
   ) where

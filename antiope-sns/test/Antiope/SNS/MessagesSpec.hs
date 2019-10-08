@@ -42,6 +42,6 @@ genUTCTime = do
   m <- Gen.int (Range.constant 1 12)
   d <- Gen.int (Range.constant 1 28)
   let day = fromGregorian y m d
-  secs <- toInteger <$> Gen.int (Range.constant 0 86401)
+  secs <- toInteger <$> Gen.int (Range.constant 0 86400)
   let diffTime = secondsToDiffTime secs
   pure $ UTCTime day diffTime

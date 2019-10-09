@@ -34,21 +34,24 @@ esService = Service
   , _svcRetry     = _svcRetry elasticSearch
   }
 
-class EncodeEsRequest a where
-  encodeEsRequest :: Vector a -> L.ByteString
+data SendBulk a = SendBulk
+  { _pbOps           :: Vector a
+    -- This is here as opposed to in a class in order to avoid forcing orphan
+    -- instances when we integrate with Bloodhound.
+  , _encodeEsRequest :: Vector a -> L.ByteString
+  } deriving (Typeable, Generic)
 
-newtype SendBulk a = SendBulk
-  { _pbOps :: Vector a
-  } deriving (Eq, Show, Typeable, Generic)
-
-sendBulk :: Vector a -> SendBulk a
+sendBulk :: Vector a -> (Vector a -> L.ByteString) -> SendBulk a
 sendBulk = SendBulk
 
-sendBulk' :: [a] -> SendBulk a
+sendBulk' :: [a] -> (Vector a -> L.ByteString) -> SendBulk a
 sendBulk' = SendBulk . Vector.fromList
 
 bulkOps :: Lens' (SendBulk a) (Vector a)
 bulkOps = lens _pbOps (\s a -> s{_pbOps = a})
+
+bulkEncode :: Lens' (SendBulk a) (Vector a -> L.ByteString)
+bulkEncode = lens _encodeEsRequest (\s a -> s{_encodeEsRequest = a})
 
 instance ToPath (SendBulk a) where
   toPath = const "_bulk"
@@ -59,7 +62,7 @@ instance ToQuery (SendBulk a) where
 instance ToHeaders (SendBulk a) where
   toHeaders = const [(hContentType, "application/json")]
 
-instance EncodeEsRequest a => AWSRequest (SendBulk a) where
+instance AWSRequest (SendBulk a) where
   type Rs (SendBulk a) = SendBulkResponse
   request = postBody esService
   response = receiveBytes $ \_ _ x ->
@@ -79,8 +82,8 @@ instance EncodeEsRequest a => AWSRequest (SendBulk a) where
       Just (time, False) -> Right $ SendBulkResponse (round time) False []
       _                  -> JP.eitherDecodeStrict x
 
-instance EncodeEsRequest a => ToBody (SendBulk a) where
-  toBody = toBody . encodeEsRequest . _pbOps
+instance ToBody (SendBulk a) where
+  toBody a = toBody $ _encodeEsRequest a $ _pbOps a
 
 data SendBulkResponse = SendBulkResponse
   { took       :: !Int

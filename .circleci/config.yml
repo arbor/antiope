@@ -13,36 +13,24 @@ workflows:
           executor: haskell/ghc-8_4_4
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-<<<<<<< HEAD
-          build-components: all
-=======
           build-components: antiope-athena antiope-contract antiope-core antiope-dynamodb antiope-es antiope-messages antiope-optparse-applicative antiope-s3 antiope-shell antiope-sns antiope-sqs antiope-swf
           build-components-separately: true
->>>>>>> MAYH-12721 Build all components separately
 
       - haskell/build-with-binary-cache:
           name: GHC 8.6.5
           executor: haskell/ghc-8_6_5
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-<<<<<<< HEAD
-          build-components: all
-=======
           build-components: antiope-athena antiope-contract antiope-core antiope-dynamodb antiope-es antiope-messages antiope-optparse-applicative antiope-s3 antiope-shell antiope-sns antiope-sqs antiope-swf
           build-components-separately: true
->>>>>>> MAYH-12721 Build all components separately
 
       - haskell/build-with-binary-cache:
           name: GHC 8.8.1
           executor: haskell/ghc-8_8_1
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-<<<<<<< HEAD
-          build-components: all
-=======
           build-components: antiope-athena antiope-contract antiope-core antiope-dynamodb antiope-es antiope-messages antiope-optparse-applicative antiope-s3 antiope-shell antiope-sns antiope-sqs antiope-swf
           build-components-separately: true
->>>>>>> MAYH-12721 Build all components separately
 
       - github/release-cabal:
           name: GitHub Release

@@ -37,7 +37,7 @@ library
                       , amazonka               >= 1.6.0
                       , amazonka-core          >= 1.6.0
                       , amazonka-elasticsearch >= 1.6.0
-                      , bloodhound
+                      , bloodhound < 0.17
                       , json-stream
                       , lens
                       , thyme
@@ -52,5 +52,7 @@ test-suite antiope-s3-test
   default-extensions:   BangPatterns GeneralizedNewtypeDeriving OverloadedStrings TupleSections
   ghc-options:          -threaded -rtsopts -with-rtsopts=-N
   build-tool-depends:   hspec-discover:hspec-discover
-  build-depends:        antiope-es
+  build-depends:        
+                        antiope-es
+                      , hspec
                       

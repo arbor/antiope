@@ -6,22 +6,20 @@
 
 module Antiope.ES.Sign where
 
-import Control.Lens                  (Lens', lens, (&), (.~), (<&>))
+import Control.Lens              (Lens', lens, (&), (.~), (<&>))
 import Data.Aeson
-import Data.JsonStream.Parser        (objectWithKey, parseByteString)
-import Data.Maybe                    (listToMaybe)
-import Data.Vector                   (Vector)
-import Database.V5.Bloodhound.Client (encodeBulkOperations)
-import Database.V5.Bloodhound.Types  (BulkOperation)
-import Network.AWS.ElasticSearch     (elasticSearch)
+import Data.JsonStream.Parser    (objectWithKey, parseByteString)
+import Data.Vector               (Vector)
+import Network.AWS.ElasticSearch (elasticSearch)
 import Network.AWS.Prelude
-import Network.AWS.Request           (postBody)
-import Network.AWS.Response          (receiveBytes)
-import Network.AWS.Sign.V4           (v4)
+import Network.AWS.Request       (postBody)
+import Network.AWS.Response      (receiveBytes)
+import Network.AWS.Sign.V4       (v4)
 
-import qualified Data.HashMap.Strict    as HMap
-import qualified Data.JsonStream.Parser as JP
-import qualified Data.Vector            as Vector
+import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.HashMap.Strict        as HMap
+import qualified Data.JsonStream.Parser     as JP
+import qualified Data.Vector                as Vector
 
 esService :: Service
 esService = Service
@@ -36,30 +34,33 @@ esService = Service
   , _svcRetry     = _svcRetry elasticSearch
   }
 
-newtype SendBulk = SendBulk'
-  { _pbOps :: Vector BulkOperation
+class EncodeEsRequest a where
+  encodeEsRequest :: Vector a -> L.ByteString
+
+newtype SendBulk a = SendBulk
+  { _pbOps :: Vector a
   } deriving (Eq, Show, Typeable, Generic)
 
-sendBulk :: Vector BulkOperation -> SendBulk
-sendBulk = SendBulk'
+sendBulk :: Vector a -> SendBulk a
+sendBulk = SendBulk
 
-sendBulk' :: [BulkOperation] -> SendBulk
-sendBulk' = SendBulk' . Vector.fromList
+sendBulk' :: [a] -> SendBulk a
+sendBulk' = SendBulk . Vector.fromList
 
-bulkOps :: Lens' SendBulk (Vector BulkOperation)
+bulkOps :: Lens' (SendBulk a) (Vector a)
 bulkOps = lens _pbOps (\s a -> s{_pbOps = a})
 
-instance ToPath SendBulk where
+instance ToPath (SendBulk a) where
   toPath = const "_bulk"
 
-instance ToQuery SendBulk where
+instance ToQuery (SendBulk a) where
   toQuery = const mempty
 
-instance ToHeaders SendBulk where
+instance ToHeaders (SendBulk a) where
   toHeaders = const [(hContentType, "application/json")]
 
-instance AWSRequest SendBulk where
-  type Rs SendBulk = SendBulkResponse
+instance EncodeEsRequest a => AWSRequest (SendBulk a) where
+  type Rs (SendBulk a) = SendBulkResponse
   request = postBody esService
   response = receiveBytes $ \_ _ x ->
     -- ES returns JSON which contains an array of elements, one per an item in a batch.
@@ -78,8 +79,8 @@ instance AWSRequest SendBulk where
       Just (time, False) -> Right $ SendBulkResponse (round time) False []
       _                  -> JP.eitherDecodeStrict x
 
-instance ToBody SendBulk where
-  toBody = toBody . encodeBulkOperations . _pbOps
+instance EncodeEsRequest a => ToBody (SendBulk a) where
+  toBody = toBody . encodeEsRequest . _pbOps
 
 data SendBulkResponse = SendBulkResponse
   { took       :: !Int

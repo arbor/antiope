@@ -5,6 +5,3 @@ package amazonka-swf
 
 package amazonka-s3
   ghc-options: +RTS -M2G -RTS
-
-max-backjumps: 5000
-reorder-goals: true

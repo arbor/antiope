@@ -29,7 +29,7 @@ common config
 library
   import:               base, config
   exposed-modules:      Antiope.ES
-                        Antiope.ES.Sign
+                        Antiope.ES.Service
   hs-source-dirs:       src
   default-extensions:   BangPatterns GeneralizedNewtypeDeriving OverloadedStrings TupleSections
   build-depends:
@@ -40,9 +40,8 @@ library
                       , bytestring
                       , json-stream
                       , lens
+                      , http-types
                       , thyme
-                      , unordered-containers
-                      , vector
 
 test-suite antiope-s3-test
   import:               base, config
@@ -52,7 +51,7 @@ test-suite antiope-s3-test
   default-extensions:   BangPatterns GeneralizedNewtypeDeriving OverloadedStrings TupleSections
   ghc-options:          -threaded -rtsopts -with-rtsopts=-N
   build-tool-depends:   hspec-discover:hspec-discover
-  build-depends:        
+  build-depends:
                         antiope-es
                       , hspec
-                      
+

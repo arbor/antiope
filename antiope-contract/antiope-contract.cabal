@@ -1,7 +1,7 @@
 cabal-version: 2.4
 
 name:                   antiope-contract
-version:                7.4.4
+version:                7.4.5
 synopsis:               Please see the README on Github at <https://github.com/arbor/antiope#readme>
 description:            Please see the README on Github at <https://github.com/arbor/antiope#readme>.
 category:               Services

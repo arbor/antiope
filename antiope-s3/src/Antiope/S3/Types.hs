@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -17,6 +18,7 @@ module Antiope.S3.Types
 
 import Antiope.S3.Internal
 import Control.Applicative
+import Control.DeepSeq
 import Control.Lens
 import Control.Monad
 import Data.Aeson
@@ -41,7 +43,7 @@ import qualified Text.ParserCombinators.ReadPrec as RP
 data S3Uri = S3Uri
   { bucket    :: BucketName
   , objectKey :: ObjectKey
-  } deriving (Show, Eq, Ord, Generic)
+  } deriving (Show, Eq, Ord, Generic, NFData)
 
 instance FromText S3Uri where
   parser = do
@@ -68,7 +70,7 @@ instance FromJSON S3Uri where
 data Range = Range
   { first :: Int
   , last  :: Int
-  } deriving (Eq, Show, Generic)
+  } deriving (Eq, Show, Generic, NFData)
 
 readString :: String -> RP.ReadPrec String
 readString s = do

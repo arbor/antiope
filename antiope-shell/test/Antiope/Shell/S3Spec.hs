@@ -4,7 +4,7 @@ import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
-{-# ANN module ("HLint: Ignore Redundant do" :: String) #-}
+{-# ANN module ("HLint: ignore Redundant do" :: String) #-}
 
 spec :: Spec
 spec = describe "Antiope.S3.S3Spec" $ do

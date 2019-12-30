@@ -15,7 +15,7 @@ import Test.Hspec
 
 import qualified Data.Aeson as Aeson
 
-{-# ANN module ("HLint: Ignore Redundant do" :: String) #-}
+{-# ANN module ("HLint: ignore Redundant do" :: String) #-}
 
 jsonObject :: MonadGen m => m Aeson.Value
 jsonObject = do

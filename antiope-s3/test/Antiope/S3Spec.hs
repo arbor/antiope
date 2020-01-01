@@ -12,7 +12,7 @@ import Test.Hspec
 import qualified Antiope.S3.Lazy            as LBS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 
-{-# ANN module ("HLint: Ignore Redundant do" :: String) #-}
+{-# ANN module ("HLint: ignore Redundant do" :: String) #-}
 
 spec :: Spec
 spec = describe "Antiope.S3Spec" $ do

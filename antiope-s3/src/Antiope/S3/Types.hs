@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -9,6 +10,7 @@ module Antiope.S3.Types
   , X.ObjectKey(..)
   , X.ETag(..)
   , S3Uri(..)
+  , DownloadResult(..)
   , readBucketName
   , readWhile
   , dirname
@@ -26,6 +28,7 @@ import Data.Char
 import Data.Generics.Product.Any
 import Data.List
 import Data.Semigroup            ((<>))
+import Data.Time.Clock           (UTCTime)
 import GHC.Generics
 import Network.AWS.Data
 import Network.AWS.S3            (BucketName (..), ObjectKey (..))
@@ -39,6 +42,13 @@ import qualified Data.Text                       as T
 import qualified Network.AWS.S3                  as AWS
 import qualified Network.AWS.S3.Types            as X
 import qualified Text.ParserCombinators.ReadPrec as RP
+
+data DownloadResult a
+  = NotFound S3Uri
+  | NotModified S3Uri
+  | Downloaded UTCTime S3Uri a
+  deriving (Show, Ord, Eq, Functor)
+
 
 data S3Uri = S3Uri
   { bucket    :: BucketName

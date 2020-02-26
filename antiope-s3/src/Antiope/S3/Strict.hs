@@ -3,18 +3,25 @@
 module Antiope.S3.Strict
   ( unsafeDownload
   , download
+  , downloadIfModifiedSince
   , downloadFromS3Uri
-
   , unsafeDownloadMap
   , downloadMap
   , downloadMapFromS3Uri
+  , DownloadResult (..)
+  , S3Uri(..)
+  , AWS.BucketName
+  , AWS.ObjectKey
+  , UTCTime
   ) where
 
 import Antiope.Core                 ()
-import Antiope.S3.Types             (S3Uri)
+import Antiope.S3.Types             (DownloadResult, S3Uri)
+import Control.DeepSeq              (force)
 import Control.Monad                ((<$!>))
 import Control.Monad.Trans.AWS      hiding (send)
 import Control.Monad.Trans.Resource
+import Data.Time.Clock              (UTCTime)
 import Network.AWS                  (MonadAWS)
 
 import qualified Antiope.S3.Lazy      as LBS
@@ -33,6 +40,13 @@ download :: (MonadAWS m, MonadUnliftIO m)
   -> AWS.ObjectKey
   -> m (Maybe BS.ByteString)
 download bucketName objectKey = runResourceT $  (LBS.toStrict <$!>) <$!> LBS.download bucketName objectKey
+
+downloadIfModifiedSince :: (MonadAWS m, MonadUnliftIO m)
+  => S3Uri
+  -> Maybe UTCTime
+  -> m (DownloadResult BS.ByteString)
+downloadIfModifiedSince uri since =
+  runResourceT $ fmap (force . LBS.toStrict) <$!> LBS.downloadIfModifiedSince uri since
 
 downloadFromS3Uri :: (MonadAWS m, MonadUnliftIO m)
   => S3Uri

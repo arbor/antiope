@@ -5,10 +5,14 @@ module Antiope.S3.Strict
   , download
   , downloadIfModifiedSince
   , downloadFromS3Uri
-
   , unsafeDownloadMap
   , downloadMap
   , downloadMapFromS3Uri
+  , DownloadResult (..)
+  , S3Uri(..)
+  , AWS.BucketName
+  , AWS.ObjectKey
+  , UTCTime
   ) where
 
 import Antiope.Core                 ()

@@ -16,6 +16,11 @@ module Antiope.S3.Lazy
   , dlistObjectsV2
   , dlistS3Uris
   , s3UriToListObjectsV2
+  , DownloadResult (..)
+  , S3Uri(..)
+  , AWS.BucketName
+  , AWS.ObjectKey
+  , UTCTime
   ) where
 
 import Antiope.Core.Error

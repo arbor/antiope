@@ -17,13 +17,15 @@ module Antiope.S3
 , Region(..)
 , BucketName(..)
 , ObjectKey(..)
+, DownloadResult(..)
 , ETag(..)
 , S3Uri(..)
+, UTCTime
 ) where
 
 import Antiope.Core.Error           (handle404ToNone)
 import Antiope.S3.Internal
-import Antiope.S3.Types             (S3Uri (S3Uri, objectKey))
+import Antiope.S3.Types             (DownloadResult (..), S3Uri (S3Uri, objectKey))
 import Conduit
 import Control.Lens
 import Control.Monad
@@ -33,6 +35,7 @@ import Data.Conduit.List            (consume, unfoldM)
 import Data.Maybe                   (catMaybes, isJust)
 import Data.Monoid                  ((<>))
 import Data.Text                    as T (Text, pack, unpack)
+import Data.Time.Clock              (UTCTime)
 import Network.AWS                  (MonadAWS)
 import Network.AWS.Data.Body        (_streamBody)
 import Network.AWS.Data.Text        (toText)

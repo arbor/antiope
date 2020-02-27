@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Antiope.Env
   ( mkEnv
   , AWS.Env
@@ -12,7 +13,6 @@ import Data.ByteString.Builder
 import Network.HTTP.Client     (HttpException (..), HttpExceptionContent (..))
 
 import qualified Data.ByteString               as BS
-import qualified Data.ByteString.Char8         as C8
 import qualified Data.ByteString.Lazy          as L
 import qualified Data.ByteString.Lazy.Internal as LBS
 import qualified Network.AWS                   as AWS
@@ -27,9 +27,11 @@ mkEnv region lg = do
 
 newAwsLogger :: Monad m => (AWS.LogLevel -> LBS.ByteString -> IO ()) -> m AWS.Logger
 newAwsLogger lg = return $ \y b ->
-  case toLazyByteString b of
-    msg | BS.isInfixOf (C8.pack "404 Not Found") (L.toStrict msg) -> pure ()
-    msg -> lg y msg
+  let lazyMsg = toLazyByteString b
+  in case L.toStrict lazyMsg of
+      msg | BS.isInfixOf "404 Not Found" msg    -> lg AWS.Debug lazyMsg
+      msg | BS.isInfixOf "304 Not Modified" msg -> lg AWS.Debug lazyMsg
+      _                                         -> lg y lazyMsg
 
 retryPolicy :: Int -> Int -> HttpException -> Bool
 retryPolicy maxNum attempt ex = (attempt <= maxNum) && shouldRetry ex

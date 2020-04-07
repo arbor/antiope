@@ -5,6 +5,13 @@ orbs:
   github: haskell-works/github-release@1.3.3
   hackage: haskell-works/hackage@1.2.0
 
+jobs:
+  ghc-builds:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - run: echo place holder
+
 workflows:
   multiple-ghc-build:
     jobs:
@@ -28,6 +35,14 @@ workflows:
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
           build-components: all
+
+      - ghc-builds:
+          name: GHC Builds
+          context: haskell-ci
+          requires:
+            - GHC 8.4.4
+            - GHC 8.6.5
+            - GHC 8.8.2
 
       - github/release-cabal:
           name: GitHub Release

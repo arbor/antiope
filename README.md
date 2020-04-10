@@ -102,3 +102,6 @@ runAws e $ D.dynamoQuery table $ \q -> q
   & qExpressionAttributeValues .~ fromList [(":v", attributeValue & avS ?~ "<primary key value>")]
   & qExpressionAttributeNames  .~ fromList [("#k", "<primary key name>")]
 ```
+
+
+

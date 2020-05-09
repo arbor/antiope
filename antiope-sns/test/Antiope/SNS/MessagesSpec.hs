@@ -10,7 +10,7 @@ import Hedgehog.Gen                as Gen
 import Hedgehog.Range              as Range
 import Test.Hspec
 
-{-# ANN module ("HLint: ignore Redundant do" :: String) #-}
+{- HLINT ignore "Redundant do"    -}
 
 spec :: Spec
 spec = describe "Antiope.SNS.MessagesSpec" $ do

@@ -1,0 +1,7 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:antiope-messages"
+
+    - path: "test"
+      component: "antiope-messages:test:antiope-messages-test"

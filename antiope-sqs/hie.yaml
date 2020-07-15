@@ -1,0 +1,7 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:antiope-sqs"
+
+    - path: "test"
+      component: "antiope-sqs:test:antiope-sqs-test"

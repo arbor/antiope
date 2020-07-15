@@ -1,0 +1,7 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:antiope-sns"
+
+    - path: "test"
+      component: "antiope-sns:test:antiope-sns-test"

@@ -1,0 +1,7 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:antiope-optparse-applicative"
+
+    - path: "test"
+      component: "antiope-optparse-applicative:test:antiope-optparse-applicative-test"

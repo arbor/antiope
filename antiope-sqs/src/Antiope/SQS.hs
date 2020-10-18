@@ -11,8 +11,10 @@ module Antiope.SQS
   , ackMessage
   , ackMessages
   , queueSource
+  , keepAliveMessage
   , forAllMessages
   , forAllMessages'
+  , forAllMessages''
   , defaultReceiveMessage
 
   -- * Re-exports
@@ -26,7 +28,7 @@ import Control.Monad.IO.Unlift  (MonadUnliftIO)
 import Control.Monad.Loops      (unfoldWhileM)
 import Control.Monad.Trans      (lift)
 import Data.Coerce              (coerce)
-import Data.Conduit
+import Data.Conduit             (ConduitT)
 import Data.Conduit.Combinators (yieldMany)
 import Data.List.Split          (chunksOf)
 import Data.Maybe               (catMaybes)
@@ -98,6 +100,21 @@ ackMessages (QueueUrl queueUrl) msgs = do
       else return $ Left DeleteMessageBatchError
   pure $ sequence_ results
 
+-- | Changes the visibility timeout of a specified message in a queue to a new value.
+-- The message will be considered "In Flight" for a given amount of time.
+--
+-- The maximum allowed timeout value is 12 hours.
+-- Thus, you can't extend the timeout of a message in an existing queue to more than a total visibility timeout of 12 hours.
+-- For more information, see Visibility Timeout in the Amazon Simple Queue Service Developer Guide .
+keepAliveMessage :: (MonadAWS m, HasReceiptHandle msg)
+  => MessageVisibilitySeconds
+  -> QueueUrl
+  -> msg
+  -> m ()
+keepAliveMessage (MessageVisibilitySeconds t) (QueueUrl queueUrl) msg = do
+  case (getReceiptHandle msg) of
+    Nothing   -> pure ()
+    Just rcpt -> void . AWS.send $ changeMessageVisibility queueUrl (coerce rcpt) t
 
 -- | Reads from an SQS indefinitely, producing messages into a conduit
 queueSource :: MonadAWS m => QueueUrl -> ConduitT () Message m ()
@@ -120,16 +137,26 @@ forAllMessages' :: (MonadUnliftIO m, HasEnv env)
   -> ConsumerMode
   -> (Message -> m ConsumerResult)
   -> m ()
-forAllMessages' env recMsg mode process = go
+forAllMessages' env recMsg mode process =
+  forAllMessages'' env recMsg mode (const process)
+
+forAllMessages'' :: (MonadUnliftIO m, HasEnv env)
+  => env
+  -> ReceiveMessage
+  -> ConsumerMode
+  -> (QueueUrl -> Message -> m ConsumerResult)
+  -> m ()
+forAllMessages'' env recMsg mode process = go
   where
     go = do
       msgs <- runResourceT $ runAWS env (readQueue' recMsg)
       case (mode, msgs) of
         (Drain, []) -> pure ()
         _           -> processBatch msgs >> go
-    processBatch msgs =
+    processBatch msgs = do
+      let queueUrl = QueueUrl $ recMsg ^. rmQueueURL
       forM_ msgs $ \msg -> do
-        res <- process msg
+        res <- process queueUrl msg
         case res of
-          Ack  -> void . runResourceT . runAWS env $ ackMessage (QueueUrl $ recMsg ^. rmQueueURL) msg
+          Ack  -> void . runResourceT . runAWS env $ ackMessage queueUrl msg
           Nack -> pure ()

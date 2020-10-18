@@ -14,7 +14,6 @@ module Antiope.SQS
   , keepAliveMessage
   , forAllMessages
   , forAllMessages'
-  , forAllMessages''
   , defaultReceiveMessage
 
   -- * Re-exports

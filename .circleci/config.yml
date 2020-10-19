@@ -28,7 +28,7 @@ workflows:
           executor: haskell/ghc-8_8_3
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-          build-components: all
+          build-components: antiope-athena antiope-contract antiope-core antiope-dynamodb antiope-es antiope-messages antiope-optparse-applicative antiope-s3 antiope-shell antiope-sns antiope-sqs
           build-dependencies-first: true
           build-components-separately: true
 
@@ -37,7 +37,7 @@ workflows:
           executor: haskell/ghc-8_8_2
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-          build-components: all
+          build-components: antiope-athena antiope-contract antiope-core antiope-dynamodb antiope-es antiope-messages antiope-optparse-applicative antiope-s3 antiope-shell antiope-sns antiope-sqs
           build-dependencies-first: true
           build-components-separately: true
 

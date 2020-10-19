@@ -29,6 +29,8 @@ workflows:
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
           build-components: all
+          build-dependencies-first: true
+          build-components-separately: true
 
       - haskell/build-with-binary-cache:
           name: GHC 8.8.2
@@ -36,6 +38,8 @@ workflows:
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
           build-components: all
+          build-dependencies-first: true
+          build-components-separately: true
 
       - merge-point/merge-point:
           name: Build Ok

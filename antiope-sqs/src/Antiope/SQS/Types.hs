@@ -20,6 +20,9 @@ data ConsumerResult
   | Nack
   deriving (Show, Eq, Generic)
 
+newtype MessageVisibilitySeconds = MessageVisibilitySeconds Int
+  deriving (Eq, Show, Read, Ord, Generic)
+
 data SQSError = DeleteMessageBatchError
   deriving (Eq, Show, Generic)
 

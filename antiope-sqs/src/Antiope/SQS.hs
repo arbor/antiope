@@ -14,6 +14,8 @@ module Antiope.SQS
   , keepAliveMessage
   , forAllMessages
   , forAllMessages'
+  , lazyReadAllMessages
+  , lazyReadAllMessages'
   , defaultReceiveMessage
 
   -- * Re-exports
@@ -23,7 +25,7 @@ module Antiope.SQS
 
 import Control.Lens
 import Control.Monad            (forM, forM_, join, void)
-import Control.Monad.IO.Unlift  (MonadUnliftIO)
+import Control.Monad.IO.Unlift  (MonadUnliftIO, askUnliftIO, liftIO, unliftIO)
 import Control.Monad.Loops      (unfoldWhileM)
 import Control.Monad.Trans      (lift)
 import Data.Coerce              (coerce)
@@ -37,7 +39,8 @@ import Network.AWS.SQS
 
 import Antiope.SQS.Types
 
-import qualified Network.AWS as AWS
+import qualified Network.AWS      as AWS
+import qualified System.IO.Unsafe as IO
 
 defaultReceiveMessage :: QueueUrl -> ReceiveMessage
 defaultReceiveMessage (QueueUrl url)
@@ -138,6 +141,39 @@ forAllMessages' :: (MonadUnliftIO m, HasEnv env)
   -> m ()
 forAllMessages' env recMsg mode process =
   forAllMessages'' env recMsg mode (const process)
+
+-- | Reads all messages from the queue into a LAZY list.
+-- This function will read the provided SQS queue one batch at a time
+-- as the list is consumed.
+--
+-- Use 'lazyReadAllMessages'' to control the batch size.
+lazyReadAllMessages :: (MonadUnliftIO m, HasEnv env)
+  => env
+  -> QueueUrl
+  -> ConsumerMode
+  -> m [Message]
+lazyReadAllMessages env queue mode =
+  lazyReadAllMessages' env (defaultReceiveMessage queue) mode
+
+-- | Reads all messages from the queue into a LAZY list.
+-- This function will read the provided SQS queue one batch at a time as
+-- as the list is consumed.
+lazyReadAllMessages' :: (MonadUnliftIO m, HasEnv env)
+  => env
+  -> ReceiveMessage
+  -> ConsumerMode
+  -> m [Message]
+lazyReadAllMessages' env recMsg mode = do
+  u <- askUnliftIO
+  liftIO $ IO.unsafeInterleaveIO (go u)
+  where
+    go u = do
+      msgs <- unliftIO u (runResourceT $ runAWS env (readQueue' recMsg))
+      case (mode, msgs) of
+        (Drain, []) -> pure []
+        _           -> do
+          rest <- IO.unsafeInterleaveIO (go u)
+          pure (msgs ++ rest)
 
 forAllMessages'' :: (MonadUnliftIO m, HasEnv env)
   => env

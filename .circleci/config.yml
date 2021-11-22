@@ -6,19 +6,17 @@ orbs:
   hackage: haskell-works/hackage@1.4.2
   merge-point: haskell-works/merge-point@1.0.0
 
+executors:
+  ghc-8_10_7:
+    docker:
+      - image: quay.io/haskell_works/ghc-8.10.7:ubuntu-18.04
+
 workflows:
   multiple-ghc-build:
     jobs:
       - haskell/build-with-binary-cache:
-          name: GHC 8.4.4
-          executor: haskell/ghc-8_4_4
-          context: haskell-ci
-          binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-          build-components: all
-
-      - haskell/build-with-binary-cache:
-          name: GHC 8.6.5
-          executor: haskell/ghc-8_6_5
+          name: GHC 8.10.7
+          executor: ghc-8_10_7
           context: haskell-ci
           binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
           build-components: all
@@ -32,21 +30,10 @@ workflows:
           build-dependencies-first: true
           build-components-separately: true
 
-      - haskell/build-with-binary-cache:
-          name: GHC 8.8.2
-          executor: haskell/ghc-8_8_2
-          context: haskell-ci
-          binary-cache-uri: ${BINARY_CACHE_URI-"http://hw-binary-cache-us-west-2-a.s3-website-us-west-2.amazonaws.com/archive"}
-          build-components: antiope-athena antiope-contract antiope-core antiope-dynamodb antiope-es antiope-messages antiope-optparse-applicative antiope-s3 antiope-shell antiope-sns antiope-sqs
-          build-dependencies-first: true
-          build-components-separately: true
-
       - merge-point/merge-point:
           name: Build Ok
           requires:
-            - GHC 8.4.4
-            - GHC 8.6.5
-            - GHC 8.8.2
+            - GHC 8.10.7
             - GHC 8.8.3
 
       - github/release-cabal:

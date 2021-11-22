@@ -40,7 +40,6 @@ library
                       , bytestring
                       , json-stream
                       , lens
-                      , thyme
                       , unordered-containers
                       , vector
 

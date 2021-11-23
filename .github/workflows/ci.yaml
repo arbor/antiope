@@ -1,0 +1,39 @@
+name: ci
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc: ["8.10.7", "8.8.3"]
+        os: [ubuntu-latest]
+
+    container:
+      image: quay.io/haskell_works/ghc-${{ matrix.ghc }}:ubuntu-16.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure project
+        run: cabal configure --enable-tests --write-ghc-environment-files=ghc8.4.4+
+
+      - name: Build
+        # Try building it twice in case of flakey builds on Windows
+        run: |
+          cabal build all --enable-tests --write-ghc-environment-files=ghc8.4.4+
+
+      - name: Test
+        run: |
+          cabal test all --enable-tests --write-ghc-environment-files=ghc8.4.4+

@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Antiope.Env
   ( mkEnv
+  , mkEnv'
   , AWS.Env
   , AWS.HasEnv(..)
   , AWS.LogLevel(..)
@@ -17,13 +18,17 @@ import qualified Data.ByteString.Lazy          as L
 import qualified Data.ByteString.Lazy.Internal as LBS
 import qualified Network.AWS                   as AWS
 
-mkEnv :: Region -> (AWS.LogLevel -> LBS.ByteString -> IO ()) -> IO AWS.Env
-mkEnv region lg = do
+-- | A version of mkEnv that is allowed to discover the region.
+mkEnv' :: (AWS.LogLevel -> LBS.ByteString -> IO ()) -> IO AWS.Env
+mkEnv' lg = do
   lgr <- newAwsLogger lg
   newEnv Discover
     <&> envLogger .~ lgr
-    <&> envRegion .~ region
     <&> envRetryCheck .~ retryPolicy 5
+
+mkEnv :: Region -> (AWS.LogLevel -> LBS.ByteString -> IO ()) -> IO AWS.Env
+mkEnv region lg =
+  mkEnv' lg <&> envRegion .~ region
 
 newAwsLogger :: Monad m => (AWS.LogLevel -> LBS.ByteString -> IO ()) -> m AWS.Logger
 newAwsLogger lg = return $ \y b ->

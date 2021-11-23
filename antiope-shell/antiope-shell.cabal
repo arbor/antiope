@@ -1,7 +1,7 @@
 cabal-version: 2.4
 
 name:                   antiope-shell
-version:                7.5.3
+version:                7.5.4
 synopsis:               Please see the README on Github at <https://github.com/arbor/antiope#readme>
 description:            Please see the README on Github at <https://github.com/arbor/antiope#readme>.
 category:               Services

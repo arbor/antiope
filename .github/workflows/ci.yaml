@@ -21,7 +21,7 @@ jobs:
         os: [ubuntu-latest]
 
     container:
-      image: quay.io/haskell_works/ghc-${{ matrix.ghc }}:ubuntu-16.04
+      image: quay.io/haskell_works/ghc-${{ matrix.ghc }}:ubuntu-18.04
 
     steps:
       - uses: actions/checkout@v2
@@ -32,7 +32,6 @@ jobs:
           cabal configure --enable-tests --write-ghc-environment-files=ghc8.4.4+
 
       - name: Build
-        # Try building it twice in case of flakey builds on Windows
         run: |
           cabal build all --enable-tests --write-ghc-environment-files=ghc8.4.4+
 
